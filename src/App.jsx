@@ -6,7 +6,7 @@ function App() {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-    const apiUrl = `${import.meta.env.VITE_API_BASE_URL_LOCAL}healthCheck/`;
+    const apiUrl = `${import.meta.env.VITE_API_BASE_URL_DEPLOY}healthCheck/`;
 
     axios
       .get(apiUrl)
