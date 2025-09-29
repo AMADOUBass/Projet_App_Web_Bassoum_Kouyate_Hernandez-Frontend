@@ -6,12 +6,12 @@ function App() {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-    const apiUrl = `${import.meta.env.VITE_API_BASE_URL_DEPLOY}healthCheck/`;
+    const apiUrl = `${import.meta.env.VITE_API_BASE_URL_LOCAL}healthCheck/`;
 
     axios
       .get(apiUrl)
       .then((response) => {
-        setStatus(response.data); // backend just returns "OK"
+        setStatus(response.data);
         console.log("Le backend est en ligne:", response.data);
       })
       .catch((error) => {
