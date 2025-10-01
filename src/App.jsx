@@ -1,37 +1,50 @@
-import { useState, useEffect } from "react";
+// src/App.jsx
+import { useState } from "react";
 import "./App.css";
-import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import AppRoutes from "./routes/AppRoutes";
 
 function App() {
-  const [status, setStatus] = useState("");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const apiUrl = `${import.meta.env.VITE_API_BASE_URL_DEPLOY}healthCheck/`;
+  const [accessToken, setAccessToken] = useState(
+    localStorage.getItem("access") || ""
+  );
+  const [refreshToken, setRefreshToken] = useState(
+    localStorage.getItem("refresh") || ""
+  );
 
-    axios
-      .get(apiUrl)
-      .then((response) => {
-        setStatus(response.data); // backend just returns "OK"
-        console.log("Le backend est en ligne:", response.data);
-      })
-      .catch((error) => {
-        setStatus("Erreur de connexion au serveur");
-        console.error("Il y a une erreur:", error);
-      });
-  }, []);
+  const handleLoginSuccess = (access, refresh, role) => {
+    setAccessToken(access);
+    setRefreshToken(refresh);
+    localStorage.setItem("access", access);
+    localStorage.setItem("refresh", refresh);
+    localStorage.setItem("role", role);
+    toast.success("Connexion réussie !");
+
+    // ✅ Navigate based on role
+    if (role === "admin") {
+      navigate("/admin-dashboard");
+    } else if (role === "player") {
+      navigate("/player-dashboard");
+    } else {
+      navigate("/");
+    }
+  };
 
   return (
     <div className="App">
-      <h1>Backend Status</h1>
-      <p>Status: {status}</p>
-      {/* make a page en construction */}
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
-        <h2>Page en construction 🚧</h2>
-        <p>
-          Nous travaillons dur pour vous offrir une expérience exceptionnelle.
-          Restez à l'écoute !
-        </p>
-      </div>
+      <AppRoutes onLoginSuccess={handleLoginSuccess} />
+      <Toaster />
+      {/* <button
+        onClick={() =>
+          navigate("/error", {
+            state: { code: 404, message: "Test 404 page" },
+          })
+        }>
+        Test 404
+      </button> */}
     </div>
   );
 }
