@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../utils/AxiosInstance";
+import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-hot-toast";
 
 export default function CreateAccountForm() {
