@@ -86,7 +86,7 @@ export default function CreateAccountForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-6">
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-6" noValidate >
       <h2 className="text-xl font-bold">Créer un compte</h2>
 
       {/* Email Field */}
