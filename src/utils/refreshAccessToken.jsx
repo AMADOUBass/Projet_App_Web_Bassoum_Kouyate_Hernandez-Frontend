@@ -1,4 +1,8 @@
-// src/utils/refreshAccessToken.js
+const isDevelopment = import.meta.env.MODE === "development";
+const myBaseURL = isDevelopment
+  ? import.meta.env.VITE_API_BASE_URL_LOCAL
+  : import.meta.env.VITE_API_BASE_URL_DEPLOY;
+
 export async function refreshAccessToken() {
   const refresh = localStorage.getItem("refresh");
 
@@ -8,14 +12,11 @@ export async function refreshAccessToken() {
   }
 
   try {
-    const response = await fetch(
-      "http://localhost:8000/api/auth/token/refresh/",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh }),
-      }
-    );
+    const response = await fetch(`${myBaseURL}/auth/token/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh }),
+    });
 
     if (!response.ok) throw new Error("Failed to refresh token");
 
