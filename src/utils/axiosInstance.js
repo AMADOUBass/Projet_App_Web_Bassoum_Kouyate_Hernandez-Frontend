@@ -1,9 +1,14 @@
 // src/utils/axiosInstance.js
 import axios from "axios";
 import { refreshAccessToken } from "./refreshAccessToken";
+const isDevelopment = import.meta.env.MODE === "development";
+
+const myBaseURL = isDevelopment
+  ? import.meta.env.VITE_API_BASE_URL_LOCAL   // ex: "http://127.0.0.1:8000/api"
+  : import.meta.env.VITE_API_BASE_URL_DEPLOY; 
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: myBaseURL,
   headers: {
     "Content-Type": "application/json",
   },
