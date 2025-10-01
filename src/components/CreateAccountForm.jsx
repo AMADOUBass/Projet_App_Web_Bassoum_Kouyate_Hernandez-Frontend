@@ -75,7 +75,7 @@ export default function CreateAccountForm() {
 
     try {
       await axiosInstance.post("/auth/register/", formData);
-      toast.success("✅ Compte créé. En attente de validation par un admin.");
+      toast.success("Compte créé. En attente de validation par un admin.");
       navigate("/");
     } catch (error) {
       const status = error.response?.status;
