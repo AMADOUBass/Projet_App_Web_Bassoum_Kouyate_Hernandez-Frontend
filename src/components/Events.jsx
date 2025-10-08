@@ -6,11 +6,19 @@ import { Pencil, Trash2, PlusCircle, X } from "lucide-react"; // Icônes moderne
 export default function Event() {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    eventId: null,
+    title: "",
+  });
   const [newEvent, setNewEvent] = useState({
     title: "",
     event_type: "",
     date_event: "",
     location: "",
+    description: "",
+    opponent: "",
+    is_cancelled: false,
   });
 
   const fetchEvents = async () => {
@@ -23,37 +31,15 @@ export default function Event() {
     }
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  // ✅ Ajouter un événement
-  const handleAddEvent = async (e) => {
-    e.preventDefault();
-    try {
-      await axiosInstance.post("/events/", newEvent);
-      toast.success("Événement ajouté !");
-      setShowModal(false);
-      setNewEvent({ title: "", event_type: "", date_event: "", location: "" });
-      fetchEvents();
-    } catch (error) {
-      console.error("Erreur lors de l’ajout:", error);
-      toast.error("Erreur lors de l’ajout de l’événement");
-    }
+  const handleDeleteClick = (id, title) => {
+    setConfirmModal({ show: true, eventId: id, title });
   };
 
-  // ✏️ Modifier un événement (tu pourras l’implémenter plus tard)
-  const handleEdit = (id) => {
-    toast("Fonction modifier à implémenter !");
-  };
-
-  // 🗑️ Supprimer un événement
-  const handleDelete = async (id) => {
-    if (!window.confirm("Voulez-vous vraiment supprimer cet événement ?"))
-      return;
+  const confirmDelete = async () => {
     try {
-      await axiosInstance.delete(`/events/${id}/`);
+      await axiosInstance.delete(`/events/${confirmModal.eventId}/`);
       toast.success("Événement supprimé !");
+      setConfirmModal({ show: false, eventId: null, title: "" });
       fetchEvents();
     } catch (error) {
       console.error("Erreur suppression:", error);
@@ -61,9 +47,46 @@ export default function Event() {
     }
   };
 
+  const cancelDelete = () => {
+    setConfirmModal({ show: false, eventId: null, title: "" });
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const handleAddEvent = async (e) => {
+    e.preventDefault();
+    try {
+      await axiosInstance.post("/events/", newEvent);
+      toast.success("Événement ajouté !");
+      setShowModal(false);
+      setNewEvent({
+        title: "",
+        event_type: "",
+        date_event: "",
+        location: "",
+        description: "",
+        opponent: "",
+        is_cancelled: false,
+      });
+      fetchEvents();
+    } catch (error) {
+      console.error("Erreur lors de l’ajout:", error);
+      toast.error("Erreur lors de l’ajout de l’événement");
+    }
+  };
+
+  const handleEdit = (id) => {
+    toast("Fonction modifier à implémenter !");
+  };
+
+  const handleDelete = async (id, title) => {
+    setConfirmModal({ show: true, eventId: id, title });
+  };
+
   return (
     <div className="p-6">
-      {/* Titre + bouton ajouter */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-white">📅 Événements</h1>
         <button
@@ -74,7 +97,6 @@ export default function Event() {
         </button>
       </div>
 
-      {/* Tableau des événements */}
       <div className="overflow-x-auto">
         <table className="min-w-full border bg-gray-900 text-white rounded-lg">
           <thead>
@@ -109,7 +131,7 @@ export default function Event() {
                       <Pencil size={20} />
                     </button>
                     <button
-                      onClick={() => handleDelete(event.id)}
+                      onClick={() => handleDelete(event.id, event.title)}
                       className="text-red-500 hover:text-red-400"
                       title="Supprimer"
                     >
@@ -123,7 +145,45 @@ export default function Event() {
         </table>
       </div>
 
-      {/* Modale d’ajout d’événement */}
+      {/* Modal de confirmation */}
+      {confirmModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-gray-900 text-white p-6 rounded-xl shadow-lg w-80">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-semibold">Confirmation</h2>
+              <button
+                onClick={cancelDelete}
+                className="text-gray-400 hover:text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-sm mb-6">
+              Voulez-vous vraiment supprimer{" "}
+              <span className="font-semibold text-red-400">
+                {confirmModal.title}
+              </span>{" "}
+              ?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelDelete}
+                className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-3 py-1 rounded bg-red-600 hover:bg-red-700"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal d'ajout */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-gray-900 p-6 rounded-xl shadow-xl w-96 text-white">
@@ -140,7 +200,7 @@ export default function Event() {
             <form onSubmit={handleAddEvent} className="space-y-4">
               <input
                 type="text"
-                placeholder="Titre"
+                placeholder="Titre de l'événement"
                 className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
                 value={newEvent.title}
                 onChange={(e) =>
@@ -148,18 +208,24 @@ export default function Event() {
                 }
                 required
               />
-              <input
-                type="text"
-                placeholder="Type (ex: Match, Entraînement...)"
+
+              <select
                 className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
                 value={newEvent.event_type}
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, event_type: e.target.value })
                 }
                 required
-              />
+              >
+                <option value="">-- Sélectionnez un type --</option>
+                <option value="Entrainement">Entraînement</option>
+                <option value="Match">Match</option>
+                <option value="Tournoi">Tournoi</option>
+                <option value="Amical">Amical</option>
+              </select>
+
               <input
-                type="date"
+                type="datetime-local"
                 className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
                 value={newEvent.date_event}
                 onChange={(e) =>
@@ -167,6 +233,7 @@ export default function Event() {
                 }
                 required
               />
+
               <input
                 type="text"
                 placeholder="Lieu"
@@ -177,6 +244,38 @@ export default function Event() {
                 }
                 required
               />
+
+              <textarea
+                placeholder="Description"
+                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                rows="3"
+                value={newEvent.description}
+                onChange={(e) =>
+                  setNewEvent({ ...newEvent, description: e.target.value })
+                }
+              ></textarea>
+
+              <input
+                type="text"
+                placeholder="Adversaires"
+                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                value={newEvent.opponent}
+                onChange={(e) =>
+                  setNewEvent({ ...newEvent, opponent: e.target.value })
+                }
+              />
+
+              <label className="flex items-center gap-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={newEvent.is_cancelled}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, is_cancelled: e.target.checked })
+                  }
+                  className="w-4 h-4"
+                />
+                Événement annulé
+              </label>
 
               <button
                 type="submit"
