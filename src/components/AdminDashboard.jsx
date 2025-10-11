@@ -13,6 +13,11 @@ export default function AdminDashboard() {
     navigate("/");
   }, [navigate]);
 
+  // Voir evenet
+  const handleEvent = useCallback(() => {
+    navigate("/admin/events");
+  }, [navigate]);
+
   // ✅ Approve player with error-based redirection
   const handleApprove = async (playerId) => {
     // const access = localStorage.getItem("access");
@@ -108,7 +113,8 @@ export default function AdminDashboard() {
                     }
                     handleApprove(user.id);
                   }}
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
+                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                >
                   Approuver
                 </button>
               </td>
@@ -119,8 +125,16 @@ export default function AdminDashboard() {
 
       <button
         onClick={handleLogout}
-        className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+      >
         Se Déconnecter
+      </button>
+
+      <button
+        onClick={handleEvent}
+        className="m-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+      >
+        Événements
       </button>
     </div>
   );

@@ -1,67 +1,34 @@
-// AdminLayout.jsx
-import { useState } from "react";
-import { X } from "lucide-react";
-import AdminDashboard from "./AdminDashboard";
-import Event from "./Event";
-
-export default function AdminLayout() {
-  const [activeMenu, setActiveMenu] = useState("dashboard");
-
-  // Contenu dynamique selon le menu sélectionné
-  const renderContent = () => {
-    switch (activeMenu) {
-      case "dashboard":
-        return <AdminDashboard />;
-      case "events":
-        return <Event />;
-      default:
-        return <AdminDashboard />;
-    }
-  };
-
+export default function MainLayout({ children }) {
   return (
-    <div className="flex h-screen bg-gray-800 text-white">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-900 flex flex-col p-4">
-        <h2 className="text-xl font-bold mb-6">Mon Projet</h2>
-        <nav className="flex flex-col gap-2">
-          <button
-            className={`text-left px-3 py-2 rounded hover:bg-gray-700 ${
-              activeMenu === "dashboard" ? "bg-gray-700" : ""
-            }`}
-            onClick={() => setActiveMenu("dashboard")}
-          >
-            Dashboard Admin
-          </button>
-          <button
-            className={`text-left px-3 py-2 rounded hover:bg-gray-700 ${
-              activeMenu === "events" ? "bg-gray-700" : ""
-            }`}
-            onClick={() => setActiveMenu("events")}
-          >
-            Événements
-          </button>
-          {/* Ajouter d'autres menus ici */}
+    <div className="flex h-screen bg-gray-900 text-white">
+      {/* Sidebar gauche */}
+      <aside className="w-64 bg-gray-800 p-4 flex flex-col">
+        <h2 className="text-2xl font-bold mb-6">MyTeam</h2>
+        <nav className="flex-1">
+          <ul className="space-y-2">
+            <li className="hover:bg-gray-700 p-2 rounded">Tableau de bord</li>
+            <li className="hover:bg-gray-700 p-2 rounded">Événements</li>
+          </ul>
         </nav>
       </aside>
 
-      {/* Main content */}
+      {/* Content principal */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="flex justify-end items-center p-4 bg-gray-900 border-b border-gray-700">
-          <div className="flex items-center gap-4">
-            <span>👤 Admin</span>
-            <button
-              onClick={() => alert("Déconnexion à implémenter")}
-              className="px-3 py-1 bg-red-500 rounded hover:bg-red-600"
-            >
-              Logout
-            </button>
+        <header className="flex justify-between items-center bg-gray-800 p-4 shadow">
+          <h1 className="text-xl font-semibold">Événements</h1>
+          <div className="flex items-center gap-2">
+            <span>Amadou K.</span>
+            <img
+              src="https://via.placeholder.com/32"
+              alt="Profil"
+              className="w-8 h-8 rounded-full"
+            />
           </div>
         </header>
 
-        {/* Contenu */}
-        <main className="flex-1 overflow-auto p-6">{renderContent()}</main>
+        {/* Zone de contenu */}
+        <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
     </div>
   );

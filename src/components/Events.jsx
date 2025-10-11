@@ -143,6 +143,7 @@ export default function Event() {
               <th className="px-4 py-2">Date</th>
               <th className="px-4 py-2">Lieu</th>
               <th className="px-4 py-2">Oposition</th>
+              <th className="px-4 py-2">Etat</th>
               <th className="px-4 py-2 text-center">Actions</th>
             </tr>
           </thead>
@@ -171,6 +172,14 @@ export default function Event() {
                   </td>
                   <td className="px-4 py-2">{event.location}</td>
                   <td className="px-4 py-2">{event.opponent?.team || "—"}</td>
+                  <td className="px-4 py-2 text-center">
+                    {event.is_cancelled ? (
+                      <span className="text-red-400 font-bold">Annulé ❌</span>
+                    ) : (
+                      <span className="text-green-400 font-bold">Actif ✅</span>
+                    )}
+                  </td>
+
                   <td className="px-4 py-2 flex gap-3 justify-center">
                     <button
                       onClick={() => handleEdit(event)}
@@ -329,17 +338,23 @@ export default function Event() {
                 }
               />
 
-              <label className="flex items-center gap-2 text-sm text-gray-300">
-                <input
-                  type="checkbox"
-                  checked={newEvent.is_cancelled}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, is_cancelled: e.target.checked })
-                  }
-                  className="w-4 h-4"
-                />
-                Événement annulé
-              </label>
+              {/* Champ visible uniquement en mode édition */}
+              {isEdit && (
+                <label className="flex items-center gap-2 text-sm text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={newEvent.is_cancelled}
+                    onChange={(e) =>
+                      setNewEvent({
+                        ...newEvent,
+                        is_cancelled: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4"
+                  />
+                  Événement annulé
+                </label>
+              )}
 
               <button
                 type="submit"
