@@ -67,7 +67,7 @@ export default function Event() {
       date_event: event.date_event?.slice(0, 16) || "",
       location: event.location,
       description: event.description,
-      opponent: event.opponent?.team || "",
+      opponent: event.opponent || "",
       is_cancelled: event.is_cancelled,
     });
     setShowModal(true);
@@ -107,9 +107,7 @@ export default function Event() {
     const payload = {
       ...newEvent,
       date_event: dateISO,
-      opponent: ["Match", "Tournoi", "Amical"].includes(newEvent.event_type)
-        ? { team: newEvent.opponent || "À définir" }
-        : {},
+      opponent: newEvent.opponent || "",
     };
 
     try {
@@ -196,7 +194,7 @@ export default function Event() {
                       : "—"}
                   </td>
                   <td className="px-4 py-2">{event.location}</td>
-                  <td className="px-4 py-2">{event.opponent?.team || "—"}</td>
+                  <td className="px-4 py-2">{event.opponent || "—"}</td>
                   <td className="px-4 py-2 text-center">
                     {event.is_cancelled ? (
                       <span className="text-red-400 font-bold">Annulé ❌</span>
