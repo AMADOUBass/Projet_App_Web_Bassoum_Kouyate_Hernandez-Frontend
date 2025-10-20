@@ -6,7 +6,7 @@ import { Pencil, Trash2, PlusCircle, X } from "lucide-react";
 export default function Event() {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false); // Mode édition
+  const [isEdit, setIsEdit] = useState(false);
   const [editEventId, setEditEventId] = useState(null);
   const [confirmModal, setConfirmModal] = useState({
     show: false,
@@ -72,8 +72,32 @@ export default function Event() {
     setShowModal(true);
   };
 
+  const validateEvent = () => {
+    const errors = [];
+
+    if (!newEvent.title.trim()) errors.push("Le titre est requis.");
+    if (!newEvent.event_type) errors.push("Le type d'événement est requis.");
+    if (!newEvent.date_event)
+      errors.push("La date de l'événement est requise.");
+    if (!newEvent.location.trim()) errors.push("Le lieu est requis.");
+
+    if (
+      ["Match", "Tournoi", "Amical"].includes(newEvent.event_type) &&
+      !newEvent.opponent.trim()
+    ) {
+      errors.push("L’adversaire est requis pour ce type d’événement.");
+    }
+
+    if (errors.length > 0) {
+      errors.forEach((err) => toast.error(err));
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateEvent()) return;
 
     const dateISO = newEvent.date_event
       ? new Date(newEvent.date_event).toISOString()
@@ -142,15 +166,15 @@ export default function Event() {
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Date</th>
               <th className="px-4 py-2">Lieu</th>
-              <th className="px-4 py-2">Oposition</th>
-              <th className="px-4 py-2">Etat</th>
+              <th className="px-4 py-2">Adversaire</th>
+              <th className="px-4 py-2">État</th>
               <th className="px-4 py-2 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {events.length === 0 ? (
               <tr>
-                <td colSpan="5" className="text-center py-4 text-gray-400">
+                <td colSpan="7" className="text-center py-4 text-gray-400">
                   Aucun événement trouvé.
                 </td>
               </tr>
@@ -179,7 +203,6 @@ export default function Event() {
                       <span className="text-green-400 font-bold">Actif ✅</span>
                     )}
                   </td>
-
                   <td className="px-4 py-2 flex gap-3 justify-center">
                     <button
                       onClick={() => handleEdit(event)}
@@ -203,45 +226,6 @@ export default function Event() {
         </table>
       </div>
 
-      {/* Modal de confirmation */}
-      {confirmModal.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-gray-900 text-white p-6 rounded-xl shadow-lg w-80">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-lg font-semibold">Confirmation</h2>
-              <button
-                onClick={cancelDelete}
-                className="text-gray-400 hover:text-white"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <p className="text-sm mb-6">
-              Voulez-vous vraiment supprimer{" "}
-              <span className="font-semibold text-red-400">
-                {confirmModal.title}
-              </span>{" "}
-              ?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={cancelDelete}
-                className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-3 py-1 rounded bg-red-600 hover:bg-red-700"
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal d'ajout / modification */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-gray-900 p-6 rounded-xl shadow-xl w-96 text-white">
@@ -271,94 +255,134 @@ export default function Event() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Titre de l'événement"
-                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                value={newEvent.title}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, title: e.target.value })
-                }
-                required
-              />
-
-              <select
-                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                value={newEvent.event_type}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, event_type: e.target.value })
-                }
-                required
-              >
-                <option value="">-- Sélectionnez un type --</option>
-                <option value="Entrainement">Entraînement</option>
-                <option value="Match">Match</option>
-                <option value="Tournoi">Tournoi</option>
-                <option value="Amical">Amical</option>
-              </select>
-
-              <input
-                type="datetime-local"
-                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                value={newEvent.date_event}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, date_event: e.target.value })
-                }
-                required
-              />
-
-              <input
-                type="text"
-                placeholder="Lieu"
-                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                value={newEvent.location}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, location: e.target.value })
-                }
-                required
-              />
-
-              <textarea
-                placeholder="Description"
-                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                rows="3"
-                value={newEvent.description}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, description: e.target.value })
-                }
-              ></textarea>
-
-              <input
-                type="text"
-                placeholder="Adversaires"
-                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                value={newEvent.opponent}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, opponent: e.target.value })
-                }
-              />
-
-              {/* Champ visible uniquement en mode édition */}
-              {isEdit && (
-                <label className="flex items-center gap-2 text-sm text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={newEvent.is_cancelled}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        is_cancelled: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4"
-                  />
-                  Événement annulé
+              {/* Champ - Titre */}
+              <div>
+                <label className="block text-sm font-medium text-left mb-1">
+                  Titre <span className="text-red-500">*</span>
                 </label>
+                <input
+                  type="text"
+                  placeholder="Titre de l'événement"
+                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                  value={newEvent.title}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, title: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Champ - Type */}
+              <div>
+                <label className="block text-sm font-medium text-left mb-1">
+                  Type d'événement <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                  value={newEvent.event_type}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, event_type: e.target.value })
+                  }
+                >
+                  <option value="">-- Sélectionnez un type --</option>
+                  <option value="Entrainement">Entraînement</option>
+                  <option value="Match">Match</option>
+                  <option value="Tournoi">Tournoi</option>
+                  <option value="Amical">Amical</option>
+                </select>
+              </div>
+
+              {/* Champ - Date */}
+              <div>
+                <label className="block text-sm font-medium text-left mb-1">
+                  Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                  value={newEvent.date_event}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, date_event: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Champ - Lieu */}
+              <div>
+                <label className="block text-sm font-medium text-left mb-1">
+                  Lieu <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Lieu"
+                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                  value={newEvent.location}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, location: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Champ - Description */}
+              <div>
+                <label className="block text-sm font-medium text-left mb-1">
+                  Description
+                </label>
+                <textarea
+                  placeholder="Description"
+                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                  rows="3"
+                  value={newEvent.description}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, description: e.target.value })
+                  }
+                ></textarea>
+              </div>
+
+              {/* Champ - Adversaire */}
+              <div>
+                <label className="block text-sm font-medium text-left mb-1">
+                  Adversaire{" "}
+                  {["Match", "Tournoi", "Amical"].includes(
+                    newEvent.event_type
+                  ) && <span className="text-red-500">*</span>}
+                </label>
+                <input
+                  type="text"
+                  placeholder="Nom de l'adversaire"
+                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                  value={newEvent.opponent}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, opponent: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Champ - Statut (si édition) */}
+              {isEdit && (
+                <div>
+                  <label className="block text-sm font-medium text-left mb-1">
+                    Statut
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={newEvent.is_cancelled}
+                      onChange={(e) =>
+                        setNewEvent({
+                          ...newEvent,
+                          is_cancelled: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4"
+                    />
+                    Événement annulé
+                  </label>
+                </div>
               )}
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg mt-3"
               >
                 {isEdit ? "Modifier" : "Enregistrer"}
               </button>
