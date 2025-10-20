@@ -13,6 +13,7 @@ export default function Event() {
     eventId: null,
     title: "",
   });
+
   const [newEvent, setNewEvent] = useState({
     title: "",
     event_type: "",
@@ -44,12 +45,12 @@ export default function Event() {
   const confirmDelete = async () => {
     try {
       await axiosInstance.delete(`/events/${confirmModal.eventId}/`);
-      toast.success("Événement supprimé !");
+      toast.success("Événement supprimé avec succès !");
+      setEvents(events.filter((ev) => ev.id !== confirmModal.eventId));
       setConfirmModal({ show: false, eventId: null, title: "" });
-      fetchEvents();
     } catch (error) {
       console.error("Erreur suppression:", error);
-      toast.error("Impossible de supprimer");
+      toast.error("Impossible de supprimer l'événement");
     }
   };
 
@@ -149,7 +150,7 @@ export default function Event() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white mr-5">📅 Événements</h2>
+        <h2 className="text-2xl font-bold text-white">📅 Événements</h2>
         <button
           onClick={() => setShowModal(true)}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
@@ -255,74 +256,75 @@ export default function Event() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Champ - Titre */}
-              <div>
-                <label className="block text-sm font-medium text-left mb-1">
-                  Titre <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Titre de l'événement"
-                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                  value={newEvent.title}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, title: e.target.value })
-                  }
-                />
-              </div>
+              {[
+                {
+                  label: "Titre",
+                  required: true,
+                  type: "text",
+                  key: "title",
+                  placeholder: "Titre de l'événement",
+                },
+                {
+                  label: "Type d'événement",
+                  required: true,
+                  type: "select",
+                  key: "event_type",
+                  options: ["Entrainement", "Match", "Tournoi", "Amical"],
+                },
+                {
+                  label: "Date",
+                  required: true,
+                  type: "datetime-local",
+                  key: "date_event",
+                },
+                {
+                  label: "Lieu",
+                  required: true,
+                  type: "text",
+                  key: "location",
+                  placeholder: "Lieu de l'événement",
+                },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label className="block text-sm font-medium text-left mb-1">
+                    {field.label}{" "}
+                    {field.required && <span className="text-red-500">*</span>}
+                  </label>
+                  {field.type === "select" ? (
+                    <select
+                      className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                      value={newEvent[field.key]}
+                      onChange={(e) =>
+                        setNewEvent({
+                          ...newEvent,
+                          [field.key]: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">-- Sélectionnez --</option>
+                      {field.options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type={field.type}
+                      placeholder={field.placeholder || ""}
+                      className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
+                      value={newEvent[field.key]}
+                      onChange={(e) =>
+                        setNewEvent({
+                          ...newEvent,
+                          [field.key]: e.target.value,
+                        })
+                      }
+                    />
+                  )}
+                </div>
+              ))}
 
-              {/* Champ - Type */}
-              <div>
-                <label className="block text-sm font-medium text-left mb-1">
-                  Type d'événement <span className="text-red-500">*</span>
-                </label>
-                <select
-                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                  value={newEvent.event_type}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, event_type: e.target.value })
-                  }
-                >
-                  <option value="">-- Sélectionnez un type --</option>
-                  <option value="Entrainement">Entraînement</option>
-                  <option value="Match">Match</option>
-                  <option value="Tournoi">Tournoi</option>
-                  <option value="Amical">Amical</option>
-                </select>
-              </div>
-
-              {/* Champ - Date */}
-              <div>
-                <label className="block text-sm font-medium text-left mb-1">
-                  Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                  value={newEvent.date_event}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, date_event: e.target.value })
-                  }
-                />
-              </div>
-
-              {/* Champ - Lieu */}
-              <div>
-                <label className="block text-sm font-medium text-left mb-1">
-                  Lieu <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Lieu"
-                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                  value={newEvent.location}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, location: e.target.value })
-                  }
-                />
-              </div>
-
-              {/* Champ - Description */}
               <div>
                 <label className="block text-sm font-medium text-left mb-1">
                   Description
@@ -338,7 +340,6 @@ export default function Event() {
                 ></textarea>
               </div>
 
-              {/* Champ - Adversaire */}
               <div>
                 <label className="block text-sm font-medium text-left mb-1">
                   Adversaire{" "}
@@ -357,7 +358,6 @@ export default function Event() {
                 />
               </div>
 
-              {/* Champ - Statut (si édition) */}
               {isEdit && (
                 <div>
                   <label className="block text-sm font-medium text-left mb-1">
@@ -387,6 +387,37 @@ export default function Event() {
                 {isEdit ? "Modifier" : "Enregistrer"}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {confirmModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+          <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-80 text-center">
+            <h3 className="text-lg font-semibold mb-4">
+              Supprimer l’événement ?
+            </h3>
+            <p className="text-gray-400 mb-6">
+              Êtes-vous sûr de vouloir supprimer{" "}
+              <span className="text-red-400 font-semibold">
+                {confirmModal.title}
+              </span>{" "}
+              ?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+              >
+                Supprimer
+              </button>
+              <button
+                onClick={cancelDelete}
+                className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg"
+              >
+                Annuler
+              </button>
+            </div>
           </div>
         </div>
       )}
