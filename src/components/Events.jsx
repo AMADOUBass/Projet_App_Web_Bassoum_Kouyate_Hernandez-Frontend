@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
-import { Pencil, Trash2, PlusCircle, X } from "lucide-react";
+import { Pencil, Trash2, PlusCircle, X, Users } from "lucide-react";
 
 export default function Event() {
   const [events, setEvents] = useState([]);
@@ -14,6 +14,11 @@ export default function Event() {
     title: "",
   });
 
+  // ✅ Modal pour afficher les joueurs
+  const [showPlayersModal, setShowPlayersModal] = useState(false);
+  const [players, setPlayers] = useState([]);
+  const [selectedEventTitle, setSelectedEventTitle] = useState("");
+
   const [newEvent, setNewEvent] = useState({
     title: "",
     event_type: "",
@@ -23,6 +28,8 @@ export default function Event() {
     opponent: "",
     is_cancelled: false,
   });
+
+  const [errors, setErrors] = useState({});
 
   const fetchEvents = async () => {
     try {
@@ -70,30 +77,40 @@ export default function Event() {
       opponent: event.opponent || "",
       is_cancelled: event.is_cancelled,
     });
+    setErrors({});
     setShowModal(true);
   };
 
+  const handleShowPlayers = async (event) => {
+    try {
+      const response = await axiosInstance.get(
+        `/admin/event/${event.id}/participations/`
+      );
+      setPlayers(response.data);
+      setSelectedEventTitle(event.title);
+      setShowPlayersModal(true);
+    } catch (error) {
+      console.error("Erreur de chargement des joueurs:", error);
+      toast.error("Impossible de charger la liste des joueurs");
+    }
+  };
+
   const validateEvent = () => {
-    const errors = [];
-
-    if (!newEvent.title.trim()) errors.push("Le titre est requis.");
-    if (!newEvent.event_type) errors.push("Le type d'événement est requis.");
+    const newErrors = {};
+    if (!newEvent.title.trim()) newErrors.title = "Le titre est requis.";
+    if (!newEvent.event_type)
+      newErrors.event_type = "Le type d'événement est requis.";
     if (!newEvent.date_event)
-      errors.push("La date de l'événement est requise.");
-    if (!newEvent.location.trim()) errors.push("Le lieu est requis.");
-
+      newErrors.date_event = "La date de l'événement est requise.";
+    if (!newEvent.location.trim()) newErrors.location = "Le lieu est requis.";
     if (
       ["Match", "Tournoi", "Amical"].includes(newEvent.event_type) &&
       !newEvent.opponent.trim()
     ) {
-      errors.push("L’adversaire est requis pour ce type d’événement.");
+      newErrors.opponent = "L’adversaire est requis pour ce type d’événement.";
     }
-
-    if (errors.length > 0) {
-      errors.forEach((err) => toast.error(err));
-      return false;
-    }
-    return true;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -122,6 +139,7 @@ export default function Event() {
       setShowModal(false);
       setIsEdit(false);
       setEditEventId(null);
+      setErrors({});
       setNewEvent({
         title: "",
         event_type: "",
@@ -134,10 +152,11 @@ export default function Event() {
       fetchEvents();
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        const errors = error.response.data;
-        Object.entries(errors).forEach(([field, messages]) => {
-          messages.forEach((msg) => toast.error(`${field}: ${msg}`));
+        const apiErrors = {};
+        Object.entries(error.response.data).forEach(([field, messages]) => {
+          apiErrors[field] = messages.join(" ");
         });
+        setErrors(apiErrors);
       } else {
         console.error("Erreur lors de l’envoi :", error);
         toast.error("Erreur lors de l’opération");
@@ -147,16 +166,21 @@ export default function Event() {
 
   return (
     <div className="p-6">
+      {/* --- En-tête --- */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-white">📅 Événements</h2>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setShowModal(true);
+            setErrors({});
+          }}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
         >
           <PlusCircle size={20} /> Ajouter
         </button>
       </div>
 
+      {/* --- Tableau des événements --- */}
       <div className="overflow-x-auto">
         <table className="min-w-full border bg-gray-900 text-white rounded-lg">
           <thead>
@@ -204,6 +228,13 @@ export default function Event() {
                   </td>
                   <td className="px-4 py-2 flex gap-3 justify-center">
                     <button
+                      onClick={() => handleShowPlayers(event)}
+                      className="text-blue-400 hover:text-blue-300"
+                      title="Voir joueurs"
+                    >
+                      <Users size={20} />
+                    </button>
+                    <button
                       onClick={() => handleEdit(event)}
                       className="text-yellow-400 hover:text-yellow-300"
                       title="Modifier"
@@ -224,14 +255,15 @@ export default function Event() {
           </tbody>
         </table>
       </div>
-
+      {/* --- Modal d’ajout / modification d’événement --- */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-gray-900 p-6 rounded-xl shadow-xl w-96 text-white">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">
-                {isEdit ? "Modifier l'événement" : "Ajouter un événement"}
-              </h2>
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+          <div className="bg-gray-900 text-white p-6 rounded-2xl shadow-2xl w-[600px] max-h-[90vh] overflow-y-auto">
+            {/* --- En-tête --- */}
+            <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
+              <h3 className="text-xl font-semibold">
+                {isEdit ? "✏️ Modifier l’événement" : "➕ Nouvel événement"}
+              </h3>
               <button
                 onClick={() => {
                   setShowModal(false);
@@ -253,138 +285,243 @@ export default function Event() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {[
-                {
-                  label: "Titre",
-                  required: true,
-                  type: "text",
-                  key: "title",
-                  placeholder: "Titre de l'événement",
-                },
-                {
-                  label: "Type d'événement",
-                  required: true,
-                  type: "select",
-                  key: "event_type",
-                  options: ["Entrainement", "Match", "Tournoi", "Amical"],
-                },
-                {
-                  label: "Date",
-                  required: true,
-                  type: "datetime-local",
-                  key: "date_event",
-                },
-                {
-                  label: "Lieu",
-                  required: true,
-                  type: "text",
-                  key: "location",
-                  placeholder: "Lieu de l'événement",
-                },
-              ].map((field) => (
-                <div key={field.key}>
-                  <label className="block text-sm font-medium text-left mb-1">
-                    {field.label}{" "}
-                    {field.required && <span className="text-red-500">*</span>}
-                  </label>
-                  {field.type === "select" ? (
-                    <select
-                      className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                      value={newEvent[field.key]}
-                      onChange={(e) =>
-                        setNewEvent({
-                          ...newEvent,
-                          [field.key]: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">-- Sélectionnez --</option>
-                      {field.options.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type={field.type}
-                      placeholder={field.placeholder || ""}
-                      className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                      value={newEvent[field.key]}
-                      onChange={(e) =>
-                        setNewEvent({
-                          ...newEvent,
-                          [field.key]: e.target.value,
-                        })
-                      }
-                    />
-                  )}
-                </div>
-              ))}
-
+            {/* --- Formulaire --- */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* --- Titre --- */}
               <div>
-                <label className="block text-sm font-medium text-left mb-1">
+                <label className="block text-sm font-medium mb-1 text-left">
+                  Titre <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newEvent.title}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, title: e.target.value })
+                  }
+                  className={`w-full bg-gray-800 p-2 rounded-lg text-white border ${
+                    errors.title
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-700 focus:border-blue-500"
+                  } outline-none transition-colors`}
+                />
+                {errors.title && (
+                  <p className="text-red-400 text-sm mt-1">{errors.title}</p>
+                )}
+              </div>
+
+              {/* --- Type d’événement --- */}
+              <div>
+                <label className="block text-sm font-medium mb-1 text-left">
+                  Type d’événement <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={newEvent.event_type}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, event_type: e.target.value })
+                  }
+                  className={`w-full bg-gray-800 p-2 rounded-lg text-white border ${
+                    errors.event_type
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-700 focus:border-blue-500"
+                  } outline-none transition-colors`}
+                >
+                  <option value="">-- Sélectionner --</option>
+                  <option value="Entrainement">Entraînement</option>
+                  <option value="Match">Match</option>
+                  <option value="Tournoi">Tournoi</option>
+                  <option value="Amical">Amical</option>
+                </select>
+                {errors.event_type && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.event_type}
+                  </p>
+                )}
+              </div>
+
+              {/* --- Date et heure --- */}
+              <div>
+                <label className="block text-sm font-medium mb-1 text-left">
+                  Date et heure <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  value={newEvent.date_event}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, date_event: e.target.value })
+                  }
+                  className={`w-full bg-gray-800 p-2 rounded-lg text-white border ${
+                    errors.date_event
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-700 focus:border-blue-500"
+                  } outline-none transition-colors`}
+                />
+                {errors.date_event && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.date_event}
+                  </p>
+                )}
+              </div>
+
+              {/* --- Lieu --- */}
+              <div>
+                <label className="block text-sm font-medium mb-1 text-left">
+                  Lieu <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newEvent.location}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, location: e.target.value })
+                  }
+                  className={`w-full bg-gray-800 p-2 rounded-lg text-white border ${
+                    errors.location
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-700 focus:border-blue-500"
+                  } outline-none transition-colors`}
+                />
+                {errors.location && (
+                  <p className="text-red-400 text-sm mt-1">{errors.location}</p>
+                )}
+              </div>
+
+              {/* --- Adversaire --- */}
+              <div>
+                <label className="block text-sm font-medium mb-1 text-left">
+                  Adversaire
+                </label>
+                <input
+                  type="text"
+                  value={newEvent.opponent}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, opponent: e.target.value })
+                  }
+                  className={`w-full bg-gray-800 p-2 rounded-lg text-white border ${
+                    errors.opponent
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-700 focus:border-blue-500"
+                  } outline-none transition-colors`}
+                />
+                {errors.opponent && (
+                  <p className="text-red-400 text-sm mt-1">{errors.opponent}</p>
+                )}
+              </div>
+
+              {/* --- Description --- */}
+              <div>
+                <label className="block text-sm font-medium mb-1 text-left">
                   Description
                 </label>
                 <textarea
-                  placeholder="Description"
-                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
                   rows="3"
                   value={newEvent.description}
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, description: e.target.value })
                   }
-                ></textarea>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-left mb-1">
-                  Adversaire{" "}
-                  {["Match", "Tournoi", "Amical"].includes(
-                    newEvent.event_type
-                  ) && <span className="text-red-500">*</span>}
-                </label>
-                <input
-                  type="text"
-                  placeholder="Nom de l'adversaire"
-                  className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none"
-                  value={newEvent.opponent}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, opponent: e.target.value })
-                  }
+                  className="w-full bg-gray-800 p-2 rounded-lg text-white border border-gray-700 focus:border-blue-500 outline-none"
                 />
               </div>
 
+              {/* --- Événement annulé --- */}
               {isEdit && (
-                <div>
-                  <label className="block text-sm font-medium text-left mb-1">
-                    Statut
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-gray-300">
-                    <input
-                      type="checkbox"
-                      checked={newEvent.is_cancelled}
-                      onChange={(e) =>
-                        setNewEvent({
-                          ...newEvent,
-                          is_cancelled: e.target.checked,
-                        })
-                      }
-                      className="w-4 h-4"
-                    />
-                    Événement annulé
-                  </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={newEvent.is_cancelled}
+                    onChange={(e) =>
+                      setNewEvent({
+                        ...newEvent,
+                        is_cancelled: e.target.checked,
+                      })
+                    }
+                    className="accent-blue-600"
+                  />
+                  <span className="text-sm">Événement annulé</span>
                 </div>
               )}
 
-              <button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg mt-3"
-              >
-                {isEdit ? "Modifier" : "Enregistrer"}
-              </button>
+              {/* --- Boutons --- */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false);
+                    setIsEdit(false);
+                    setEditEventId(null);
+                  }}
+                  className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white"
+                >
+                  {isEdit ? "Modifier" : "Ajouter"}
+                </button>
+              </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- Modal des joueurs --- */}
+      {showPlayersModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+          <div className="bg-gray-900 text-white p-8 rounded-2xl shadow-2xl w-[700px] max-h-[80vh] overflow-hidden flex flex-col">
+            {/* --- En-tête du modal --- */}
+            <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-3">
+              <h3 className="text-xl font-semibold">
+                Liste des participants à l’événement –{" "}
+                <span className="text-blue-400">{selectedEventTitle}</span>
+              </h3>
+            </div>
+
+            {/* --- Corps du modal --- */}
+            <div className="flex-1 overflow-y-auto pr-2">
+              {players.length === 0 ? (
+                <p className="text-gray-400 text-center mt-8">
+                  Aucun joueur inscrit à cet événement.
+                </p>
+              ) : (
+                <table className="w-full border border-gray-800 rounded-lg overflow-hidden">
+                  <thead className="bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-2 text-left">Nom</th>
+                      <th className="px-4 py-2 text-left">Position</th>
+                      <th className="px-4 py-2 text-left">Disponible</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {players.map((participation) => (
+                      <tr
+                        key={participation.id}
+                        className="border-t border-gray-700 hover:bg-gray-800 transition"
+                      >
+                        <td className="px-4 py-2">
+                          {participation.player_name}
+                        </td>
+                        <td className="px-4 py-2">
+                          {participation.player_position || "-"}
+                        </td>
+                        <td className="px-4 py-2">
+                          {participation.will_attend ? "Non" : "Oui"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* --- Pied du modal --- */}
+            <div className="mt-6 flex justify-end border-t border-gray-700 pt-4">
+              <button
+                onClick={() => setShowPlayersModal(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow transition"
+              >
+                Fermer
+              </button>
+            </div>
           </div>
         </div>
       )}
