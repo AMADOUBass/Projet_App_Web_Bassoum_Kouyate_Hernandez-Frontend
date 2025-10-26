@@ -6,7 +6,7 @@ import { Pencil, Trash2, PlusCircle, X, Users } from "lucide-react";
 export default function Event() {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
+  const [isEdit, setIsEdit] = useState(false); // Mode édition
   const [editEventId, setEditEventId] = useState(null);
   const [confirmModal, setConfirmModal] = useState({
     show: false,
@@ -52,12 +52,12 @@ export default function Event() {
   const confirmDelete = async () => {
     try {
       await axiosInstance.delete(`/events/${confirmModal.eventId}/`);
-      toast.success("Événement supprimé avec succès !");
-      setEvents(events.filter((ev) => ev.id !== confirmModal.eventId));
+      toast.success("Événement supprimé !");
       setConfirmModal({ show: false, eventId: null, title: "" });
+      fetchEvents();
     } catch (error) {
       console.error("Erreur suppression:", error);
-      toast.error("Impossible de supprimer l'événement");
+      toast.error("Impossible de supprimer");
     }
   };
 
@@ -74,7 +74,7 @@ export default function Event() {
       date_event: event.date_event?.slice(0, 16) || "",
       location: event.location,
       description: event.description,
-      opponent: event.opponent || "",
+      opponent: event.opponent?.team || "",
       is_cancelled: event.is_cancelled,
     });
     setErrors({});
@@ -115,7 +115,6 @@ export default function Event() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateEvent()) return;
 
     const dateISO = newEvent.date_event
       ? new Date(newEvent.date_event).toISOString()
@@ -124,7 +123,9 @@ export default function Event() {
     const payload = {
       ...newEvent,
       date_event: dateISO,
-      opponent: newEvent.opponent || "",
+      opponent: ["Match", "Tournoi", "Amical"].includes(newEvent.event_type)
+        ? { team: newEvent.opponent || "À définir" }
+        : {},
     };
 
     try {
@@ -168,7 +169,7 @@ export default function Event() {
     <div className="p-6">
       {/* --- En-tête --- */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">📅 Événements</h2>
+        <h2 className="text-2xl font-bold text-white mr-5">📅 Événements</h2>
         <button
           onClick={() => {
             setShowModal(true);
@@ -189,15 +190,15 @@ export default function Event() {
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Date</th>
               <th className="px-4 py-2">Lieu</th>
-              <th className="px-4 py-2">Adversaire</th>
-              <th className="px-4 py-2">État</th>
+              <th className="px-4 py-2">Oposition</th>
+              <th className="px-4 py-2">Etat</th>
               <th className="px-4 py-2 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {events.length === 0 ? (
               <tr>
-                <td colSpan="7" className="text-center py-4 text-gray-400">
+                <td colSpan="5" className="text-center py-4 text-gray-400">
                   Aucun événement trouvé.
                 </td>
               </tr>
@@ -218,7 +219,7 @@ export default function Event() {
                       : "—"}
                   </td>
                   <td className="px-4 py-2">{event.location}</td>
-                  <td className="px-4 py-2">{event.opponent || "—"}</td>
+                  <td className="px-4 py-2">{event.opponent?.team || "—"}</td>
                   <td className="px-4 py-2 text-center">
                     {event.is_cancelled ? (
                       <span className="text-red-400 font-bold">Annulé ❌</span>
@@ -226,6 +227,7 @@ export default function Event() {
                       <span className="text-green-400 font-bold">Actif ✅</span>
                     )}
                   </td>
+
                   <td className="px-4 py-2 flex gap-3 justify-center">
                     <button
                       onClick={() => handleShowPlayers(event)}
