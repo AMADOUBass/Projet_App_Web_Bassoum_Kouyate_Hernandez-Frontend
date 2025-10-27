@@ -42,19 +42,14 @@ export default function AdminDashboard() {
     navigate("/");
   }, [navigate]);
 
-  // ✅ Fetch all players
-  const fetchAllPlayers = async () => {
-    try {
-      setLoading(true);
-      const response = await axiosInstance.get("/admin/players/");
-      setAllPlayers(response.data);
-    } catch (err) {
-      setError("Erreur lors du chargement des joueurs");
-      toast.error("Erreur chargement joueurs");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Voir evenet
+  const handleEvent = useCallback(() => {
+    navigate("/admin/events");
+  }, [navigate]);
+
+  // ✅ Approve player with error-based redirection
+  const handleApprove = async (playerId) => {
+    // const access = localStorage.getItem("access");
 
   // ✅ Approve player
   const handleApprove = async (playerId) => {
@@ -191,22 +186,18 @@ export default function AdminDashboard() {
               <td className="px-4 py-2">{player.user.role || "—"}</td>
               <td className="px-4 py-2">{player.user.is_approved ? "✅" : "❌"}</td>
               <td className="px-4 py-2">
-                {!player.user.is_approved && (
-                  <button
-                    onClick={() => handleApprove(player.user.id)}
-                    className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600"
-                  >
-                    Approuver
-                  </button>
-                )}
-                {player.user.is_approved && (
-                  <button
-                    onClick={() => handleEdit(player)}
-                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                  >
-                    Modifier
-                  </button>
-                )}
+                <button
+                  onClick={() => {
+                    if (!user.id || typeof user.id !== "string") {
+                      toast.error("ID utilisateur invalide ou manquant.");
+                      return;
+                    }
+                    handleApprove(user.id);
+                  }}
+                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                >
+                  Approuver
+                </button>
               </td>
             </tr>
           ))}
@@ -310,6 +301,13 @@ export default function AdminDashboard() {
         className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
       >
         Se Déconnecter
+      </button>
+
+      <button
+        onClick={handleEvent}
+        className="m-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+      >
+        Événements
       </button>
     </div>
   );
