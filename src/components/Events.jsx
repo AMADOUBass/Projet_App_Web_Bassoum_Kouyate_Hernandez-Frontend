@@ -6,7 +6,7 @@ import { Pencil, Trash2, PlusCircle, X, Users } from "lucide-react";
 export default function Event() {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false); // Mode édition
+  const [isEdit, setIsEdit] = useState(false);
   const [editEventId, setEditEventId] = useState(null);
   const [confirmModal, setConfirmModal] = useState({
     show: false,
@@ -74,7 +74,7 @@ export default function Event() {
       date_event: event.date_event?.slice(0, 16) || "",
       location: event.location,
       description: event.description,
-      opponent: event.opponent?.team || "",
+      opponent: event.opponent || "",
       is_cancelled: event.is_cancelled,
     });
     setErrors({});
@@ -110,12 +110,17 @@ export default function Event() {
       newErrors.opponent = "L’adversaire est requis pour ce type d’événement.";
     }
     setErrors(newErrors);
+    console.log(newEvent.opponent.team);
+    console.log(newEvent.title);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validateEvent()) {
+      return;
+    }
     const dateISO = newEvent.date_event
       ? new Date(newEvent.date_event).toISOString()
       : null;
@@ -124,8 +129,8 @@ export default function Event() {
       ...newEvent,
       date_event: dateISO,
       opponent: ["Match", "Tournoi", "Amical"].includes(newEvent.event_type)
-        ? { team: newEvent.opponent || "À définir" }
-        : {},
+        ? newEvent.opponent || "À définir"
+        : null,
     };
 
     try {
@@ -219,7 +224,7 @@ export default function Event() {
                       : "—"}
                   </td>
                   <td className="px-4 py-2">{event.location}</td>
-                  <td className="px-4 py-2">{event.opponent?.team || "—"}</td>
+                  <td className="px-4 py-2">{event.opponent || "—"}</td>
                   <td className="px-4 py-2 text-center">
                     {event.is_cancelled ? (
                       <span className="text-red-400 font-bold">Annulé ❌</span>
