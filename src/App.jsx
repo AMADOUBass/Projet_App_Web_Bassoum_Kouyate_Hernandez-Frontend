@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import toast, { Toaster } from "react-hot-toast";
 import AppRoutes from "./routes/AppRoutes";
-import NavBar from "./components/NavBar";  // Si ajouté précédemment
+import NavBar from "./components/NavBar";  
 import axiosInstance from "./utils/axiosInstance";
 
 function App() {
@@ -44,7 +44,7 @@ function App() {
 
   return (
     <div className="App">
-      {user && <NavBar user={user} onLogout={handleLogout} />}  {/* NavBar si logged */}
+      {user && <NavBar user={user} onLogout={handleLogout} />} 
       <AppRoutes onLoginSuccess={handleLoginSuccess} />
       <Toaster />
     </div>
