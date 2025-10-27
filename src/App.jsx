@@ -1,19 +1,27 @@
 // src/App.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import toast, { Toaster } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import AppRoutes from "./routes/AppRoutes";
+import NavBar from "./components/NavBar";  // Si ajouté précédemment
+import axiosInstance from "./utils/axiosInstance";
 
 function App() {
-  const navigate = useNavigate();
+  const [accessToken, setAccessToken] = useState(localStorage.getItem("access") || "");
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem("refresh") || "");
+  const [user, setUser] = useState(null);
 
-  const [accessToken, setAccessToken] = useState(
-    localStorage.getItem("access") || ""
-  );
-  const [refreshToken, setRefreshToken] = useState(
-    localStorage.getItem("refresh") || ""
-  );
+  // Fetch user on mount (si token)
+  useEffect(() => {
+    if (accessToken) {
+      axiosInstance.get("/auth/current-user/")
+        .then(res => setUser(res.data))
+        .catch(() => {
+          localStorage.clear();
+          setUser(null);
+        });
+    }
+  }, [accessToken]);
 
   const handleLoginSuccess = (access, refresh, role) => {
     setAccessToken(access);
@@ -22,29 +30,23 @@ function App() {
     localStorage.setItem("refresh", refresh);
     localStorage.setItem("role", role);
     toast.success("Connexion réussie !");
+    // Fetch user after login
+    axiosInstance.get("/auth/current-user/").then(res => setUser(res.data));
+  };
 
-    // ✅ Navigate based on role
-    if (role === "admin") {
-      navigate("/admin-dashboard");
-    } else if (role === "player") {
-      navigate("/player-dashboard");
-    } else {
-      navigate("/");
-    }
+  const handleLogout = () => {
+    setAccessToken("");
+    setRefreshToken("");
+    setUser(null);
+    localStorage.clear();
+    toast.success("Déconnexion réussie !");
   };
 
   return (
     <div className="App">
+      {user && <NavBar user={user} onLogout={handleLogout} />}  {/* NavBar si logged */}
       <AppRoutes onLoginSuccess={handleLoginSuccess} />
       <Toaster />
-      {/* <button
-        onClick={() =>
-          navigate("/error", {
-            state: { code: 404, message: "Test 404 page" },
-          })
-        }>
-        Test 404
-      </button> */}
     </div>
   );
 }
