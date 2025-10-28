@@ -110,7 +110,7 @@ export default function Event() {
       newErrors.opponent = "L’adversaire est requis pour ce type d’événement.";
     }
     setErrors(newErrors);
-    console.log(newEvent.opponent.team);
+    console.log(newEvent.opponent);
     console.log(newEvent.title);
     return Object.keys(newErrors).length === 0;
   };
@@ -195,7 +195,7 @@ export default function Event() {
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Date</th>
               <th className="px-4 py-2">Lieu</th>
-              <th className="px-4 py-2">Oposition</th>
+              <th className="px-4 py-2">Opposition</th>
               <th className="px-4 py-2">Etat</th>
               <th className="px-4 py-2 text-center">Actions</th>
             </tr>

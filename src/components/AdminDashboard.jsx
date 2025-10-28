@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -6,17 +6,6 @@ import axiosInstance from "../utils/axiosInstance";
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [players, setPlayers] = useState([]);
-
-  // 🔐 Logout logic
-  const handleLogout = useCallback(() => {
-    localStorage.clear();
-    navigate("/");
-  }, [navigate]);
-
-  // Voir evenet
-  const handleEvent = useCallback(() => {
-    navigate("/admin/events");
-  }, [navigate]);
 
   // ✅ Approve player with error-based redirection
   const handleApprove = async (playerId) => {
@@ -78,7 +67,7 @@ export default function AdminDashboard() {
   // 🔄 Fetch players with token refresh fallback
   useEffect(() => {
     fectchUnapprovedPlayers();
-  }, [handleLogout]);
+  }, []);
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Accueil de l'Admin 👑</h1>
@@ -88,7 +77,7 @@ export default function AdminDashboard() {
       </p>
 
       <table className="min-w-full border bg-gray-900 mt-6">
-        <thead className="bg-gray-900">
+        <thead className="bg-gray-400">
           <tr>
             <th className="px-4 py-2 text-left">Nom d'utilisateur</th>
             <th className="px-4 py-2 text-left">L'Email</th>
@@ -113,8 +102,7 @@ export default function AdminDashboard() {
                     }
                     handleApprove(user.id);
                   }}
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                >
+                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
                   Approuver
                 </button>
               </td>
@@ -122,20 +110,6 @@ export default function AdminDashboard() {
           ))}
         </tbody>
       </table>
-
-      <button
-        onClick={handleLogout}
-        className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-      >
-        Se Déconnecter
-      </button>
-
-      <button
-        onClick={handleEvent}
-        className="m-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-      >
-        Événements
-      </button>
     </div>
   );
 }
