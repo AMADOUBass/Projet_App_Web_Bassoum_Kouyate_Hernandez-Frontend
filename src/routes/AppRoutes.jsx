@@ -7,6 +7,7 @@ import PrivateRoute from "./PrivateRoute";
 import DynamicErrorPage from "../components/DynamicErrorPage";
 import CreateAccountForm from "../components/CreateAccountForm";
 import Event from "../components/Events";
+import PlayerEvents from "../components/PlayerEvents";
 
 export default function AppRoutes({ onLoginSuccess }) {
   return (
@@ -38,6 +39,14 @@ export default function AppRoutes({ onLoginSuccess }) {
         element={
           <PrivateRoute allowedRole="admin">
             <Event />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/players/events"
+        element={
+          <PrivateRoute allowedRole="player">
+            <PlayerEvents />
           </PrivateRoute>
         }
       />
