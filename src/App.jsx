@@ -32,6 +32,8 @@ function App() {
     toast.success("Connexion réussie !");
     // Fetch user after login
     axiosInstance.get("/auth/current-user/").then(res => setUser(res.data));
+    const user = axiosInstance.get("/auth/current-user/").then(res => setUser(res.data));
+    
   };
 
   const handleLogout = () => {
@@ -44,7 +46,7 @@ function App() {
 
   return (
     <div className="App">
-      {user && <NavBar user={user} onLogout={handleLogout} />} 
+      {user && <NavBar user={user} onLogout={handleLogout} />}
       <AppRoutes onLoginSuccess={handleLoginSuccess} />
       <Toaster />
     </div>
