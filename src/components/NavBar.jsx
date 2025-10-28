@@ -75,7 +75,7 @@ export default function NavBar({ user, onLogout }) {
             }}
             className="flex items-center space-x-2 text-white hover:text-blue-400"
           >
-            <img src={profileData.profile_picture || randomFootballImg} alt="Profil" className="w-8 h-8 rounded-full" />
+           
             <span>{fullName}</span>
             <span>▼</span>
           </button>
