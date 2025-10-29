@@ -12,6 +12,8 @@ export default function CreateAccountForm() {
   const [passwordError, setPasswordError] = useState("");
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [checkingPassword, setCheckingPassword] = useState(false);
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [checkingConfirmPassword, setCheckingConfirmPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // 🔍 Email validation with debounce
@@ -63,12 +65,30 @@ export default function CreateAccountForm() {
       setCheckingPassword(false);
     }
   };
+  // 🔐 Confirm Password validation
+  const handleConfirmPasswordChange = (e) => {
+    const confirmPassword = e.target.value;
+    setFormData((prev) => ({ ...prev, confirm_password: confirmPassword }));
+
+    if (confirmPassword !== formData.password) {
+      setConfirmPasswordError("Les mots de passe ne correspondent pas.");
+    } else {
+      setConfirmPasswordError("");
+    }
+  };
 
   // 📨 Submit registration
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (emailError || passwordError || checkingEmail || checkingPassword) {
+    if (
+      emailError ||
+      passwordError ||
+      checkingEmail ||
+      checkingPassword ||
+      confirmPasswordError ||
+      checkingConfirmPassword
+    ) {
       toast.error("Corrige les erreurs avant de soumettre.");
       return;
     }
@@ -86,7 +106,10 @@ export default function CreateAccountForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-6" noValidate >
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 max-w-md mx-auto p-6"
+      noValidate>
       <h2 className="text-xl font-bold">Créer un compte</h2>
 
       {/* Email Field */}
@@ -146,6 +169,38 @@ export default function CreateAccountForm() {
         </button>
         {passwordError && (
           <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+        )}
+      </div>
+      {/* make an confirm password field */}
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          name="confirm_password"
+          placeholder="Confirmer le mot de passe"
+          value={formData.confirm_password}
+          onChange={handleConfirmPasswordChange}
+          required
+          className={`w-full px-3 py-2 pr-12 border rounded-md pb-6 ${
+            confirmPasswordError ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        <span className="absolute right-8 top-2 text-lg">
+          {checkingConfirmPassword ? (
+            <span className="animate-pulse text-gray-400">⏳</span>
+          ) : confirmPasswordError ? (
+            <span className="text-red-500">❌</span>
+          ) : formData.confirm_password ? (
+            <span className="text-green-500">✅</span>
+          ) : null}
+        </span>
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="absolute right-3 top-2 text-gray-600 hover:text-gray-800 text-sm">
+          {showPassword ? "🙈" : "👁️"}
+        </button>
+        {confirmPasswordError && (
+          <p className="text-red-500 text-sm mt-1">{confirmPasswordError}</p>
         )}
       </div>
 

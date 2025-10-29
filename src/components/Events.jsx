@@ -174,23 +174,22 @@ export default function Event() {
     <div className="p-6">
       {/* --- En-tête --- */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white mr-5">📅 Événements</h2>
+        <h2 className="text-2xl font-bold mr-5">📅 Événements</h2>
         <button
           onClick={() => {
             setShowModal(true);
             setErrors({});
           }}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
-        >
+          className="flex items-center gap-2  hover:bg-gray-700  px-4 py-2 rounded-lg shadow">
           <PlusCircle size={20} /> Ajouter
         </button>
       </div>
 
       {/* --- Tableau des événements --- */}
       <div className="overflow-x-auto">
-        <table className="min-w-full border bg-gray-900 text-white rounded-lg">
+        <table className="min-w-full border bg-gray-700 text-white rounded-lg">
           <thead>
-            <tr className="bg-gray-800 text-left">
+            <tr className="bg-gray-600 text-left">
               <th className="px-4 py-2">Titre</th>
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Date</th>
@@ -203,7 +202,7 @@ export default function Event() {
           <tbody>
             {events.length === 0 ? (
               <tr>
-                <td colSpan="5" className="text-center py-4 text-gray-400">
+                <td colSpan="7" className="text-center py-4 text-white">
                   Aucun événement trouvé.
                 </td>
               </tr>
@@ -237,22 +236,19 @@ export default function Event() {
                     <button
                       onClick={() => handleShowPlayers(event)}
                       className="text-blue-400 hover:text-blue-300"
-                      title="Voir joueurs"
-                    >
+                      title="Voir joueurs">
                       <Users size={20} />
                     </button>
                     <button
                       onClick={() => handleEdit(event)}
                       className="text-yellow-400 hover:text-yellow-300"
-                      title="Modifier"
-                    >
+                      title="Modifier">
                       <Pencil size={20} />
                     </button>
                     <button
                       onClick={() => handleDelete(event.id, event.title)}
                       className="text-red-500 hover:text-red-400"
-                      title="Supprimer"
-                    >
+                      title="Supprimer">
                       <Trash2 size={20} />
                     </button>
                   </td>
@@ -264,7 +260,7 @@ export default function Event() {
       </div>
       {/* --- Modal d’ajout / modification d’événement --- */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+        <div className="fixed inset-0  bg-opacity-60 flex justify-center items-center z-50">
           <div className="bg-gray-900 text-white p-6 rounded-2xl shadow-2xl w-[600px] max-h-[90vh] overflow-y-auto">
             {/* --- En-tête --- */}
             <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
@@ -286,8 +282,7 @@ export default function Event() {
                     is_cancelled: false,
                   });
                 }}
-                className="text-gray-400 hover:text-white"
-              >
+                className="text-gray-400 hover:text-white">
                 <X size={22} />
               </button>
             </div>
@@ -330,9 +325,8 @@ export default function Event() {
                     errors.event_type
                       ? "border-red-500 focus:border-red-500"
                       : "border-gray-700 focus:border-blue-500"
-                  } outline-none transition-colors`}
-                >
-                  <option value="">-- Sélectionner --</option>
+                  } outline-none transition-colors`}>
+                  <option value="">Sélectionner l'événement</option>
                   <option value="Entrainement">Entraînement</option>
                   <option value="Match">Match</option>
                   <option value="Tournoi">Tournoi</option>
@@ -455,14 +449,12 @@ export default function Event() {
                     setIsEdit(false);
                     setEditEventId(null);
                   }}
-                  className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg"
-                >
+                  className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg">
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white"
-                >
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white">
                   {isEdit ? "Modifier" : "Ajouter"}
                 </button>
               </div>
@@ -502,8 +494,7 @@ export default function Event() {
                     {players.map((participation) => (
                       <tr
                         key={participation.id}
-                        className="border-t border-gray-700 hover:bg-gray-800 transition"
-                      >
+                        className="border-t border-gray-700 hover:bg-gray-800 transition">
                         <td className="px-4 py-2">
                           {participation.player_name}
                         </td>
@@ -524,8 +515,7 @@ export default function Event() {
             <div className="mt-6 flex justify-end border-t border-gray-700 pt-4">
               <button
                 onClick={() => setShowPlayersModal(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow transition"
-              >
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow transition">
                 Fermer
               </button>
             </div>
@@ -549,14 +539,12 @@ export default function Event() {
             <div className="flex justify-center gap-4">
               <button
                 onClick={confirmDelete}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
-              >
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
                 Supprimer
               </button>
               <button
                 onClick={cancelDelete}
-                className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg"
-              >
+                className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg">
                 Annuler
               </button>
             </div>
