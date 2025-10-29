@@ -2,10 +2,10 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 
 const isDevelopment = import.meta.env.MODE === "development";
-// const myBaseURL = isDevelopment
-//   ? import.meta.env.VITE_API_BASE_URL_LOCAL
-//   : import.meta.env.VITE_API_BASE_URL_DEPLOY;
-const myBaseURL = "https://projet-app-web-bassoum-kouyate-hernandez.onrender.com/";
+const myBaseURL = isDevelopment
+  ? import.meta.env.VITE_API_BASE_URL_LOCAL
+  : import.meta.env.VITE_API_BASE_URL_DEPLOY;
+// const myBaseURL = "https://projet-app-web-bassoum-kouyate-hernandez.onrender.com/";
 
 const AxiosInstance = axios.create({
   baseURL: myBaseURL,
