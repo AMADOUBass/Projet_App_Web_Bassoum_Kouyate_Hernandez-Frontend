@@ -68,18 +68,32 @@ export default function CreateAccountForm() {
   // 🔐 Confirm Password validation
   const handleConfirmPasswordChange = (e) => {
     const confirmPassword = e.target.value;
+
+    // Met à jour d'abord le champ
     setFormData((prev) => ({ ...prev, confirm_password: confirmPassword }));
 
-    if (confirmPassword !== formData.password) {
+    // Utilise une copie locale du mot de passe pour éviter les effets de bord
+    const currentPassword = formData.password;
+
+    // Validation
+    if (!confirmPassword.trim()) {
+      setConfirmPasswordError("Veuillez confirmer le mot de passe.");
+    } else if (confirmPassword !== currentPassword) {
       setConfirmPasswordError("Les mots de passe ne correspondent pas.");
     } else {
       setConfirmPasswordError("");
     }
   };
-
   // 📨 Submit registration
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Vérifie si le champ de confirmation est vide
+    if (!formData.confirm_password) {
+      setConfirmPasswordError("Veuillez confirmer le mot de passe.");
+
+      return;
+    }
 
     if (
       emailError ||
@@ -89,7 +103,6 @@ export default function CreateAccountForm() {
       confirmPasswordError ||
       checkingConfirmPassword
     ) {
-      toast.error("Corrige les erreurs avant de soumettre.");
       return;
     }
 
@@ -207,7 +220,7 @@ export default function CreateAccountForm() {
       <button
         type="submit"
         disabled={checkingEmail || checkingPassword}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
         Créer mon compte
       </button>
     </form>
