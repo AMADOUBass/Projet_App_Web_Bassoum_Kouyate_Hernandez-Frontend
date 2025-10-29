@@ -14,7 +14,7 @@ export default function AdminDashboard() {
     try {
       console.log("Axios ", axiosInstance);
       await axiosInstance.post(`/admin/approve-player/${playerId}/`);
-      toast.success("Player approved!");
+      toast.success("Joueur approuvé!");
       fectchUnapprovedPlayers();
     } catch (error) {
       const status = error.response ? error.response.status : null;
