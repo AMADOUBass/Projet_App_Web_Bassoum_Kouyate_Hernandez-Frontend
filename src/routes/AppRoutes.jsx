@@ -8,6 +8,9 @@ import DynamicErrorPage from "../components/DynamicErrorPage";
 import CreateAccountForm from "../components/CreateAccountForm";
 import Event from "../components/Events";
 import PlayerEvents from "../components/PlayerEvents";
+import PlayerList from "../components/PlayerList";
+import AdminProfile from "../components/AdminProfile";
+import PlayerProfile from "../components/PlayerProfil";
 
 export default function AppRoutes({ onLoginSuccess }) {
   return (
@@ -47,6 +50,30 @@ export default function AppRoutes({ onLoginSuccess }) {
         element={
           <PrivateRoute allowedRole="player">
             <PlayerEvents />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/mes-joueurs"
+        element={
+          <PrivateRoute allowedRole="admin">
+            <PlayerList />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/profil"
+        element={
+          <PrivateRoute allowedRole="admin">
+            <AdminProfile />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/joueur/profil"
+        element={
+          <PrivateRoute allowedRole="player">
+            <PlayerProfile />
           </PrivateRoute>
         }
       />

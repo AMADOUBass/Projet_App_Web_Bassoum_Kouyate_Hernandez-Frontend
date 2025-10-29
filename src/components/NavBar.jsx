@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
+import roleTraduction from "../utils/roleTraduction";
 import { toast } from "react-hot-toast";
 import { useCallback } from "react";
 import Logo from "../assets/logo1.webp";
@@ -36,19 +37,19 @@ export default function NavBar({ user, onLogout }) {
     }
   };
 
-  // Submit edit
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    try {
-      await axiosInstance.put("/player/profile/", formData);
-      toast.success("Profil mis à jour !");
-      setProfileModal({ open: false, type: "view" });
-      fetchProfile(); // Refresh data
-    } catch (error) {
-      toast.error("Erreur mise à jour profil");
-      console.error(error);
-    }
-  };
+  // // Submit edit
+  // const handleUpdateProfile = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     await axiosInstance.put("/player/profile/", formData);
+  //     toast.success("Profil mis à jour !");
+  //     setProfileModal({ open: false, type: "view" });
+  //     fetchProfile(); // Refresh data
+  //   } catch (error) {
+  //     toast.error("Erreur mise à jour profil");
+  //     console.error(error);
+  //   }
+  // };
 
   // 🔐 Logout logic
   const handleLogout = useCallback(() => {
@@ -56,27 +57,51 @@ export default function NavBar({ user, onLogout }) {
     onLogout?.(); // Prop callback si besoin
     navigate("/login");
   }, [navigate, onLogout]);
-  // Voir evenet
-  const NavigateToEvent = useCallback(() => {
-    navigate("/admin/events");
-  }, [navigate]);
 
-  //get the logo from my asset files
-  const logo = Logo;
+  var userRole = localStorage.getItem("role");
+  // const roleLabel = roleTraduction(userRole);
+  const role = userRole;
 
-  const fullName = `${profileData.first_name || ""} ${
-    profileData.last_name || profileData.username || "Joueur"
-  }`.trim();
-  const role = localStorage.getItem("role") || "Joueur";
+  if (role === "admin") {
+    var logo = Logo;
+  } else {
+    var userId = localStorage.getItem("user_id");
+    const avatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${userId}`;
+    logo = Logo;
+    var JoueurLogo = avatarUrl;
+  }
+
   return (
     <nav className=" p-4 flex justify-between items-center shadow-lg">
       {/* Logo/Title */}
       <div className="flex items-center space-x-2">
-        <img src={logo} alt="Logo" className="w-10 h-10 rounded-full" />
+        <img
+          src={logo}
+          alt="Logo"
+          className="w-10 h-10 rounded-full cursor-pointer"
+          onClick={() => navigate("/")}
+        />
         <h1 className="text-xl pl-4 font-bold">MyTeams ⚽</h1>
-        <button onClick={NavigateToEvent} className=" pl-4 hover:text-blue-400">
-          Événements
-        </button>
+        {role === "admin" ? (
+          <>
+            <button
+              onClick={() => navigate("/admin/events")}
+              className="ml-6 px-4 py-2   rounded hover:bg-gray-300">
+              Événements
+            </button>
+            <button
+              onClick={() => navigate("/admin/mes-joueurs")}
+              className="ml-6 px-4 py-2   rounded hover:bg-gray-300">
+              Mon Équipe
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => navigate("/players/events")}
+            className="ml-6 px-4 py-2 rounded hover:bg-gray-100">
+            Voir Mes Événements
+          </button>
+        )}
       </div>
 
       {/* Player Name Dropdown */}
@@ -89,11 +114,19 @@ export default function NavBar({ user, onLogout }) {
             }}
             className="flex items-center space-x-2  hover:text-blue-400">
             <img
-              src={profileData.profile_picture || logo}
+              src={role === "admin" ? logo : JoueurLogo}
               alt="Profil"
               className="w-8 h-8 rounded-full"
             />
-            <span>{role}</span>
+
+            {/* can i show name but if is player and admin i just show role */}
+            <span>
+              {role === "admin"
+                ? "Bienvenue, Administrateur !"
+                : user.first_name
+                ? `Bienvenue, ${user.first_name} !`
+                : "Bienvenue, Joueur !"}
+            </span>
             <span>▼</span>
           </button>
 
@@ -102,19 +135,25 @@ export default function NavBar({ user, onLogout }) {
               <button
                 onClick={() => {
                   setDropdownOpen(false);
-                  setProfileModal({ open: true, type: "view" });
+                  // setProfileModal({ open: true, type: "view" });
+                  //navigate to profile page if admin
+                  if (role === "admin") {
+                    navigate("/admin/profil");
+                  } else {
+                    navigate("/joueur/profil");
+                  }
                 }}
                 className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700">
                 👤 Consulter Profil
               </button>
-              <button
+              {/* <button
                 onClick={() => {
                   setDropdownOpen(false);
                   setProfileModal({ open: true, type: "edit" });
                 }}
                 className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700">
                 ✏️ Modifier Profil
-              </button>
+              </button> */}
               <button
                 onClick={handleLogout}
                 className="block w-full text-left px-4 py-2 text-white hover:bg-red-600">
@@ -137,7 +176,8 @@ export default function NavBar({ user, onLogout }) {
             {profileModal.type === "view" ? (
               <div className="space-y-4">
                 <p>
-                  <strong>Nom :</strong> {fullName}
+                  <strong>Nom :</strong>{" "}
+                  {profileData.first_name || "Non renseigné"}
                 </p>
                 <p>
                   <strong>Email :</strong> {profileData.email}

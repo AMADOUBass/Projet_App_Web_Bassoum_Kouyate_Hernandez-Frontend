@@ -76,24 +76,26 @@ export default function AdminDashboard() {
         approbation :
       </p>
 
-      <table className="min-w-full border bg-gray-900 mt-6">
+      <table className="min-w-full border mt-6">
         <thead className="bg-gray-400">
           <tr>
             <th className="px-4 py-2 text-left">Nom d'utilisateur</th>
             <th className="px-4 py-2 text-left">L'Email</th>
-            <th className="px-4 py-2 text-left">Rôle</th>
-            <th className="px-4 py-2 text-left">Approuvé</th>
+            <th className="px-4 py-2 text-left">Status</th>
             <th className="px-4 py-2 text-left">Actions</th>
           </tr>
         </thead>
         <tbody>
           {players.map((user) => (
             <tr key={user.id} className="border-t">
-              <td className="px-4 py-2">{user.username || "—"}</td>
-              <td className="px-4 py-2 text-blue-600">{user.email || "—"}</td>
-              <td className="px-4 py-2">{user.role || "—"}</td>
-              <td className="px-4 py-2">{user.is_approved ? "✅" : "❌"}</td>
-              <td className="px-4 py-2">
+              <td className="px-4 py-2 text-left">{user.username || "—"}</td>
+              <td className="px-4 py-2 text-left text-blue-600">
+                {user.email || "—"}
+              </td>
+              <td className="px-4 py-2 text-left">
+                {user.is_approved ? "✅" : "❌"}
+              </td>
+              <td className="px-4 py-2 text-left">
                 <button
                   onClick={() => {
                     if (!user.id || typeof user.id !== "string") {
