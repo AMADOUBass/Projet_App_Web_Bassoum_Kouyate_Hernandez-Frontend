@@ -21,11 +21,11 @@ export default function AdminDashboard() {
     weight: "",
   });
 
-  // Derived lists
+
   const unapprovedPlayers = allPlayers.filter((p) => !p.user.is_approved);
   const approvedPlayers = allPlayers.filter((p) => p.user.is_approved);
 
-  // 🔍 Filtrage avec recherche
+  // Filtrage avec recherche
   const filteredPlayers = useMemo(() => {
     const current =
       activeTab === "unapproved" ? unapprovedPlayers : approvedPlayers;
@@ -39,18 +39,18 @@ export default function AdminDashboard() {
     );
   }, [activeTab, searchQuery, unapprovedPlayers, approvedPlayers]);
 
-  // 🔐 Logout
+ 
   const handleLogout = useCallback(() => {
     localStorage.clear();
     navigate("/");
   }, [navigate]);
 
-  // 🎉 Voir Événements
+  
   const handleEvent = useCallback(() => {
     navigate("/admin/events");
   }, [navigate]);
 
-  // 🔄 Fetch all players
+ 
   const fetchAllPlayers = async () => {
     try {
       setLoading(true);
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ Approve player
+ 
   const handleApprove = async (playerId) => {
     try {
       await axiosInstance.post(`/admin/approve-player/${playerId}/`);
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // 🖊️ Ouvrir modal d'édition
+  
   const handleEdit = (player) => {
     if (!player.user.is_approved) {
       toast.error("Seuls les joueurs approuvés peuvent être modifiés.");
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
     setEditModal({ open: true, player });
   };
 
-  // 🖊️ Mise à jour joueur
+
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!editModal.player?.id) return toast.error("ID joueur manquant");
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // 🔄 Fetch au montage
+
   useEffect(() => {
     fetchAllPlayers();
   }, []);
@@ -364,7 +364,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Boutons de bas de page */}
+     
       <div className="flex space-x-4">
         <button
           onClick={handleEvent}
