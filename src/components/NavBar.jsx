@@ -68,7 +68,7 @@ export default function NavBar({ user, onLogout }) {
     var userId = localStorage.getItem("user_id");
     const avatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${userId}`;
     logo = Logo;
-    var JoueurLogo = avatarUrl;
+    var JoueurLogo = profileData?.profile_picture || avatarUrl;
   }
 
   return (
@@ -116,7 +116,11 @@ export default function NavBar({ user, onLogout }) {
             <img
               src={role === "admin" ? logo : JoueurLogo}
               alt="Profil"
-              className="w-8 h-8 rounded-full"
+              className="w-8 h-8 rounded-full object-cover" // Ajout de object-cover pour une meilleure gestion des proportions
+              onError={(e) => {
+                // Fallback vers l'avatar généré si l'image ne charge pas
+                e.target.src = `https://api.dicebear.com/9.x/bottts/svg?seed=${userId}`;
+              }}
             />
 
             {/* can i show name but if is player and admin i just show role */}

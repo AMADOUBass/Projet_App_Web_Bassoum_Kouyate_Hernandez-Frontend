@@ -19,6 +19,10 @@ const AxiosInstance = axios.create({
 // ✅ Inject access token into every request
 AxiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("access");
+
+   if (!(config.data instanceof FormData)) {
+        config.headers['Content-Type'] = 'application/json';
+    }
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
