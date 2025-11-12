@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-hot-toast";
+import logo from "../assets/logo1.webp";
+
+const avatarUrl = logo;
 
 export default function AdminProfile() {
   const [admin, setAdmin] = useState(null);
@@ -19,9 +22,7 @@ export default function AdminProfile() {
 
   if (!admin) return <p className="text-white p-4">Chargement...</p>;
 
-  const avatarUrl = admin.profile_picture
-    ? admin.profile_picture
-    : `https://api.dicebear.com/9.x/bottts/svg?seed=${admin.id}`;
+  const avatarUrl = logo;
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-gray-900 text-white p-6 rounded-lg shadow-lg">

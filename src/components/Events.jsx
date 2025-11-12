@@ -174,22 +174,23 @@ export default function Event() {
     <div className="p-6">
       {/* --- En-tête --- */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold mr-5">📅 Événements</h2>
+        <h1 className="text-4xl font-bold mb-11">📅 Événements</h1>
         <button
+          type="button"
           onClick={() => {
             setShowModal(true);
             setErrors({});
           }}
-          className="flex items-center gap-2  hover:bg-gray-700  px-4 py-2 rounded-lg shadow">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg shadow hover:bg-gray-300 transition">
           <PlusCircle size={20} /> Ajouter
         </button>
       </div>
 
       {/* --- Tableau des événements --- */}
       <div className="overflow-x-auto">
-        <table className="min-w-full border bg-gray-700 text-white rounded-lg">
-          <thead>
-            <tr className="bg-gray-600 text-left">
+        <table className="min-w-full border mt-4">
+          <thead className="bg-gray-600 text-white">
+            <tr className="text-left">
               <th className="px-4 py-2">Titre</th>
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Date</th>
