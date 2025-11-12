@@ -170,6 +170,57 @@ export default function Event() {
     }
   };
 
+  const handleNoteChange = (index, newNote) => {
+    const updatedPlayers = [...players];
+    updatedPlayers[index].note = newNote;
+    setPlayers(updatedPlayers);
+  };
+
+  const saveAllNotes = async () => {
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const p of players) {
+      if (p.note !== null && p.note !== "" && !isNaN(p.note)) {
+        const success = await saveNote(p.id, p.note);
+        if (success) successCount++;
+        else errorCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      toast.success(`${successCount} note(s) enregistrée(s) avec succès !`);
+    }
+
+    if (errorCount > 0) {
+      toast.error(`${errorCount} note(s) n'ont pas pu être enregistrées.`);
+    }
+  };
+
+  const saveNote = async (participationId, note) => {
+    try {
+      const response = await axiosInstance.post("/give-notes-to-player/", {
+        participation_id: participationId,
+        note,
+      });
+
+      toast.success("Note enregistrée avec succès !");
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement de la note :", error);
+
+      if (error.response && error.response.data) {
+        toast.error(
+          error.response.data.error || "Impossible d'enregistrer la note."
+        );
+      } else {
+        toast.error("Erreur réseau, impossible d'enregistrer la note.");
+      }
+
+      return false;
+    }
+  };
+
   return (
     <div className="p-6">
       {/* --- En-tête --- */}
@@ -180,7 +231,8 @@ export default function Event() {
             setShowModal(true);
             setErrors({});
           }}
-          className="flex items-center gap-2  hover:bg-gray-700  px-4 py-2 rounded-lg shadow">
+          className="flex items-center gap-2  hover:bg-gray-700  px-4 py-2 rounded-lg shadow"
+        >
           <PlusCircle size={20} /> Ajouter
         </button>
       </div>
@@ -190,13 +242,13 @@ export default function Event() {
         <table className="min-w-full border bg-gray-700 text-white rounded-lg">
           <thead>
             <tr className="bg-gray-600 text-left">
-              <th className="px-4 py-2">Titre</th>
-              <th className="px-4 py-2">Type</th>
-              <th className="px-4 py-2">Date</th>
-              <th className="px-4 py-2">Lieu</th>
-              <th className="px-4 py-2">Opposition</th>
-              <th className="px-4 py-2">Etat</th>
-              <th className="px-4 py-2 text-center">Actions</th>
+              <th className="px-4 py-2 align-middle">Titre</th>
+              <th className="px-4 py-2 align-middle">Type</th>
+              <th className="px-4 py-2 align-middle">Date</th>
+              <th className="px-4 py-2 align-middle">Lieu</th>
+              <th className="px-4 py-2 align-middle">Opposition</th>
+              <th className="px-4 py-2 align-middle">Etat</th>
+              <th className="px-4 py-2 align-middle">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -209,9 +261,9 @@ export default function Event() {
             ) : (
               events.map((event) => (
                 <tr key={event.id} className="border-t border-gray-700">
-                  <td className="px-4 py-2">{event.title}</td>
-                  <td className="px-4 py-2">{event.event_type}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 align-middle">{event.title}</td>
+                  <td className="px-4 py-2 align-middle">{event.event_type}</td>
+                  <td className="px-4 py-2 align-middle">
                     {event.date_event
                       ? new Date(event.date_event).toLocaleString("fr-FR", {
                           year: "numeric",
@@ -222,9 +274,11 @@ export default function Event() {
                         })
                       : "—"}
                   </td>
-                  <td className="px-4 py-2">{event.location}</td>
-                  <td className="px-4 py-2">{event.opponent || "—"}</td>
-                  <td className="px-4 py-2 text-center">
+                  <td className="px-4 py-2 align-middle">{event.location}</td>
+                  <td className="px-4 py-2 align-middle">
+                    {event.opponent || "—"}
+                  </td>
+                  <td className="px-4 py-2 align-middle">
                     {event.is_cancelled ? (
                       <span className="text-red-400 font-bold">Annulé ❌</span>
                     ) : (
@@ -236,19 +290,22 @@ export default function Event() {
                     <button
                       onClick={() => handleShowPlayers(event)}
                       className="text-blue-400 hover:text-blue-300"
-                      title="Voir joueurs">
+                      title="Voir joueurs"
+                    >
                       <Users size={20} />
                     </button>
                     <button
                       onClick={() => handleEdit(event)}
                       className="text-yellow-400 hover:text-yellow-300"
-                      title="Modifier">
+                      title="Modifier"
+                    >
                       <Pencil size={20} />
                     </button>
                     <button
                       onClick={() => handleDelete(event.id, event.title)}
                       className="text-red-500 hover:text-red-400"
-                      title="Supprimer">
+                      title="Supprimer"
+                    >
                       <Trash2 size={20} />
                     </button>
                   </td>
@@ -282,7 +339,8 @@ export default function Event() {
                     is_cancelled: false,
                   });
                 }}
-                className="text-gray-400 hover:text-white">
+                className="text-gray-400 hover:text-white"
+              >
                 <X size={22} />
               </button>
             </div>
@@ -325,7 +383,8 @@ export default function Event() {
                     errors.event_type
                       ? "border-red-500 focus:border-red-500"
                       : "border-gray-700 focus:border-blue-500"
-                  } outline-none transition-colors`}>
+                  } outline-none transition-colors`}
+                >
                   <option value="">Sélectionner l'événement</option>
                   <option value="Entrainement">Entraînement</option>
                   <option value="Match">Match</option>
@@ -449,12 +508,14 @@ export default function Event() {
                     setIsEdit(false);
                     setEditEventId(null);
                   }}
-                  className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg">
+                  className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg"
+                >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white">
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white"
+                >
                   {isEdit ? "Modifier" : "Ajouter"}
                 </button>
               </div>
@@ -465,9 +526,9 @@ export default function Event() {
 
       {/* --- Modal des joueurs --- */}
       {showPlayersModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
-          <div className="bg-gray-900 text-white p-8 rounded-2xl shadow-2xl w-[700px] max-h-[80vh] overflow-hidden flex flex-col">
-            {/* --- En-tête du modal --- */}
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-gray-800 text-white p-8 rounded-2xl shadow-2xl w-[700px] max-h-[85vh] overflow-y-auto flex flex-col">
+            {/* --- En-tête --- */}
             <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-3">
               <h3 className="text-xl font-semibold">
                 Liste des participants à l’événement –{" "}
@@ -475,7 +536,7 @@ export default function Event() {
               </h3>
             </div>
 
-            {/* --- Corps du modal --- */}
+            {/* --- Corps --- */}
             <div className="flex-1 overflow-y-auto pr-2">
               {players.length === 0 ? (
                 <p className="text-gray-400 text-center mt-8">
@@ -485,24 +546,47 @@ export default function Event() {
                 <table className="w-full border border-gray-800 rounded-lg overflow-hidden">
                   <thead className="bg-gray-800">
                     <tr>
-                      <th className="px-4 py-2 text-left">Nom</th>
-                      <th className="px-4 py-2 text-left">Position</th>
-                      <th className="px-4 py-2 text-left">Disponible</th>
+                      <th className="px-4 py-2 align-middle">Nom</th>
+                      <th className="px-4 py-2 align-middle">Position</th>
+                      <th className="px-4 py-2 align-middle">Disponible</th>
+                      <th className="px-4 py-2 align-middle">Note</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {players.map((participation) => (
+                    {players.map((participation, index) => (
                       <tr
                         key={participation.id}
-                        className="border-t border-gray-700 hover:bg-gray-800 transition">
-                        <td className="px-4 py-2">
+                        className="border-t border-gray-700 hover:bg-gray-800 transition"
+                      >
+                        <td className="px-4 py-2 align-middle">
                           {participation.player_name}
                         </td>
-                        <td className="px-4 py-2">
-                          {participation.player_position || "-"}
+                        <td className="px-4 py-2 align-middle">
+                          {participation.player.position}
                         </td>
-                        <td className="px-4 py-2">
-                          {participation.will_attend ? "Non" : "Oui"}
+                        <td className="px-4 py-2 align-middle">
+                          {participation.will_attend === null
+                            ? "En attente"
+                            : participation.will_attend
+                            ? "Oui"
+                            : "Non"}
+                        </td>
+                        <td className="px-4 py-2 align-middle">
+                          <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            step="1"
+                            value={participation.note ?? ""}
+                            onChange={(e) =>
+                              handleNoteChange(
+                                index,
+                                parseInt(e.target.value) || ""
+                              )
+                            }
+                            className="w-20 bg-gray-700 text-white text-center rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="-"
+                          />
                         </td>
                       </tr>
                     ))}
@@ -511,11 +595,18 @@ export default function Event() {
               )}
             </div>
 
-            {/* --- Pied du modal --- */}
-            <div className="mt-6 flex justify-end border-t border-gray-700 pt-4">
+            {/* --- Pied --- */}
+            <div className="mt-6 flex justify-end border-t border-gray-700 pt-4 gap-4">
+              <button
+                onClick={saveAllNotes}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow transition"
+              >
+                Enregistrer les notes
+              </button>
               <button
                 onClick={() => setShowPlayersModal(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow transition">
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow transition"
+              >
                 Fermer
               </button>
             </div>
@@ -524,8 +615,8 @@ export default function Event() {
       )}
 
       {confirmModal.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
-          <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-80 text-center">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-gray-800 text-white p-8 rounded-2xl shadow-2xl w-[700px] max-h-[85vh] overflow-y-auto flex flex-col">
             <h3 className="text-lg font-semibold mb-4">
               Supprimer l’événement ?
             </h3>
@@ -539,12 +630,14 @@ export default function Event() {
             <div className="flex justify-center gap-4">
               <button
                 onClick={confirmDelete}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+              >
                 Supprimer
               </button>
               <button
                 onClick={cancelDelete}
-                className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg">
+                className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg"
+              >
                 Annuler
               </button>
             </div>
