@@ -69,15 +69,15 @@ export default function AdminDashboard() {
     fectchUnapprovedPlayers();
   }, []);
   return (
-    <div className="p-6">
+    <ble className="p-6">
       <h1 className="text-2xl font-bold mb-4">Accueil de l'Admin 👑</h1>
       <p>
         Bienvenue, Admin! Voici la liste des joueurs qui attendent votre
         approbation :
       </p>
 
-      <table className="min-w-full border mt-6">
-        <thead className="bg-gray-400">
+      <table className="min-w-full border mt-4">
+        <thead className="bg-gray-600 text-white">
           <tr>
             <th className="px-4 py-2 text-left">Nom d'utilisateur</th>
             <th className="px-4 py-2 text-left">L'Email</th>
@@ -112,6 +112,6 @@ export default function AdminDashboard() {
           ))}
         </tbody>
       </table>
-    </div>
+    </ble>
   );
 }

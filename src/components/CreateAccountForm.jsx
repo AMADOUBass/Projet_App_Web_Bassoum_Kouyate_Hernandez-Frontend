@@ -84,7 +84,7 @@ export default function CreateAccountForm() {
       setConfirmPasswordError("");
     }
   };
-  // 📨 Submit registration
+  //Submit registration
   const handleSubmit = async (e) => {
     e.preventDefault();
 
