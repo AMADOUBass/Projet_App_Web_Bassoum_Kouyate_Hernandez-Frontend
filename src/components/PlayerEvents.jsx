@@ -71,6 +71,9 @@ export default function MyEvents() {
                   {new Date(participation.date_event).toLocaleString()}
                 </td>
                 <td className="px-4 py-3 align-middle">
+                  {participation.event.type_event}
+                </td>
+                <td className="px-4 py-3 align-middle">
                   {participation.will_attend === null ? (
                     <div className="flex justify-center gap-2">
                       <button

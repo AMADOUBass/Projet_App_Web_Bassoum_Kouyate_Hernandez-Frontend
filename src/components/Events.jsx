@@ -87,6 +87,7 @@ export default function Event() {
         `/admin/event/${event.id}/participations/`
       );
       setPlayers(response.data);
+      console.log(response.data);
       setSelectedEventTitle(event.title);
       setShowPlayersModal(true);
     } catch (error) {
@@ -548,7 +549,6 @@ export default function Event() {
                     <tr>
                       <th className="px-4 py-2 align-middle">Nom</th>
                       <th className="px-4 py-2 align-middle">Position</th>
-                      <th className="px-4 py-2 align-middle">Disponible</th>
                       <th className="px-4 py-2 align-middle">Note</th>
                     </tr>
                   </thead>
@@ -562,14 +562,7 @@ export default function Event() {
                           {participation.player_name}
                         </td>
                         <td className="px-4 py-2 align-middle">
-                          {participation.player.position}
-                        </td>
-                        <td className="px-4 py-2 align-middle">
-                          {participation.will_attend === null
-                            ? "En attente"
-                            : participation.will_attend
-                            ? "Oui"
-                            : "Non"}
+                          {participation.position}
                         </td>
                         <td className="px-4 py-2 align-middle">
                           <input
