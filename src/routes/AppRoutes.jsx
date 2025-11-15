@@ -11,6 +11,9 @@ import PlayerEvents from "../components/PlayerEvents";
 import PlayerList from "../components/PlayerList";
 import AdminProfile from "../components/AdminProfile";
 import PlayerProfile from "../components/PlayerProfil";
+import AdminSeasonStats from "../components/AdminSeasonStats";
+import StatsPage from "../components/PlayerSeasonStats";
+import MyStatsTable from "../components/MyStatsTable";
 
 export default function AppRoutes({ onLoginSuccess }) {
   return (
@@ -62,10 +65,34 @@ export default function AppRoutes({ onLoginSuccess }) {
         }
       />
       <Route
+        path="/admin/season-stats"
+        element={
+          <PrivateRoute allowedRole="admin">
+            <AdminSeasonStats />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/players-stats"
+        element={
+          <PrivateRoute allowedRole="admin">
+            <StatsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
         path="/admin/profil"
         element={
           <PrivateRoute allowedRole="admin">
             <AdminProfile />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/players/my-stats"
+        element={
+          <PrivateRoute allowedRole="player">
+            <MyStatsTable />
           </PrivateRoute>
         }
       />
