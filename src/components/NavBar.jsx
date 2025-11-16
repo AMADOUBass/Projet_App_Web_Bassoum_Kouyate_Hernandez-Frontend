@@ -37,29 +37,14 @@ export default function NavBar({ user, onLogout }) {
     }
   };
 
-  // // Submit edit
-  // const handleUpdateProfile = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     await axiosInstance.put("/player/profile/", formData);
-  //     toast.success("Profil mis à jour !");
-  //     setProfileModal({ open: false, type: "view" });
-  //     fetchProfile(); // Refresh data
-  //   } catch (error) {
-  //     toast.error("Erreur mise à jour profil");
-  //     console.error(error);
-  //   }
-  // };
-
   // 🔐 Logout logic
   const handleLogout = useCallback(() => {
     localStorage.clear();
-    onLogout?.(); // Prop callback si besoin
+    onLogout?.(); 
     navigate("/login");
   }, [navigate, onLogout]);
 
   var userRole = localStorage.getItem("role");
-  // const roleLabel = roleTraduction(userRole);
   const role = userRole;
 
   if (role === "admin") {
@@ -94,13 +79,30 @@ export default function NavBar({ user, onLogout }) {
               className="ml-6 px-4 py-2   rounded hover:bg-gray-300">
               Mon Équipe
             </button>
+            <button
+              onClick={() => navigate("/admin/season-stats")}
+              className="ml-6 px-4 py-2   rounded hover:bg-gray-300">
+              Stats par Saison
+            </button>
+            <button
+              onClick={() => navigate("/admin/players-stats")}
+              className="ml-6 px-4 py-2   rounded hover:bg-gray-300">
+              Stats des Joueurs
+            </button>
           </>
         ) : (
-          <button
-            onClick={() => navigate("/players/events")}
-            className="ml-6 px-4 py-2 rounded hover:bg-gray-100">
-            Voir Mes Événements
-          </button>
+          <>
+            <button
+              onClick={() => navigate("/players/events")}
+              className="ml-6 px-4 py-2 rounded hover:bg-gray-100">
+              Voir Mes Événements
+            </button>
+            <button
+              onClick={() => navigate("/players/my-stats")}
+              className="ml-6 px-4 py-2 rounded hover:bg-gray-100">
+              Mes Statistiques
+            </button>
+          </>
         )}
       </div>
 
@@ -139,8 +141,6 @@ export default function NavBar({ user, onLogout }) {
               <button
                 onClick={() => {
                   setDropdownOpen(false);
-                  // setProfileModal({ open: true, type: "view" });
-                  //navigate to profile page if admin
                   if (role === "admin") {
                     navigate("/admin/profil");
                   } else {

@@ -6,6 +6,7 @@ import { Pencil, Trash2 } from "lucide-react";
 export default function PlayerList() {
   const [players, setPlayers] = useState([]);
   const [editingPlayerId, setEditingPlayerId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     position: "",
@@ -69,7 +70,6 @@ export default function PlayerList() {
 
   const isValidPhoneNumber = (number) => {
     const cleaned = number.trim();
-    // Accept formats like 5141234567 or 514-123-4567
     const regex = /^(\d{10}|\d{3}-\d{3}-\d{4})$/;
     return regex.test(cleaned);
   };
@@ -96,9 +96,7 @@ export default function PlayerList() {
       newErrors.phone_number = "Téléphone requis";
     else if (!isValidPhoneNumber(trimmedForm.user.phone_number))
       newErrors.phone_number = "Format de téléphone invalide";
-
-    if (!trimmedForm.position || /\s/.test(trimmedForm.position))
-      newErrors.position = "Poste invalide";
+    if (!trimmedForm.position) newErrors.position = "Poste obligatoire";
     if (!trimmedForm.jersey_number || isNaN(trimmedForm.jersey_number))
       newErrors.jersey_number = "Numéro valide requis";
 
@@ -116,14 +114,11 @@ export default function PlayerList() {
     if (!validateForm()) return;
 
     try {
-      // 1️⃣ Update player info (JSON)
       await axiosInstance.put(`/admin/players/${playerId}/`, {
         position: editForm.position,
         jersey_number: editForm.jersey_number,
         is_available: editForm.is_available,
       });
-
-      // 2️⃣ Update user info (FormData for image upload)
       const formData = new FormData();
       formData.append("first_name", editForm.user.first_name);
       formData.append("last_name", editForm.user.last_name);
@@ -144,26 +139,40 @@ export default function PlayerList() {
     }
   };
 
-  const deletePlayer = async (id) => {
+  const handleConfirmedDelete = async (playerId) => {
     try {
-      await axiosInstance.delete(`/admin/players/${id}/`);
-      setPlayers(players.filter((p) => p.id !== id));
-      toast.success("Joueur supprimé avec succès.");
+      await axiosInstance.delete(`/admin/players/${playerId}/delete-both/`);
+      setPlayers(players.filter((p) => p.id !== playerId));
+      toast.success("Joueur et compte utilisateur supprimés avec succès.");
     } catch (error) {
-      toast.error("Erreur lors de la suppression du joueur.");
+      toast.error("Erreur lors de la suppression.");
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
+  const footballPositions = [
+    "Gardien",
+    "Défenseur central",
+    "Latéral gauche",
+    "Latéral droit",
+    "Milieu défensif",
+    "Milieu central",
+    "Milieu offensif",
+    "Ailier gauche",
+    "Ailier droit",
+    "Attaquant",
+  ];
 
   return (
     <div className="p-4 bg-white rounded shadow">
-      <h1 className="text-lg font-semibold m-5">Liste de mes Joueurs</h1>
+      <h1 className="text-4xl font-bold mb-11"> 🏃‍♂️ Liste des Joueurs</h1>
 
       <table className="min-w-full border mt-4">
         <thead className="bg-gray-600 text-white">
           <tr>
             <th className="px-4 py-2 text-left">Nom</th>
             <th className="px-4 py-2 text-left">Poste</th>
-            <th className="px-4 py-2 text-left">Numéro de Maillot</th>
+            <th className="px-4 py-2 text-left">N° Maillot</th>
             <th className="px-4 py-2 text-left">Disponible</th>
             <th className="px-4 py-2 text-left">Au Club Depuis</th>
             <th className="px-4 py-2 text-left">Numéro de Téléphone</th>
@@ -202,15 +211,17 @@ export default function PlayerList() {
                   <span className="text-gray-400 italic">Aucune photo</span>
                 )}
               </td>
-              <td className="px-4 py-2 space-x-2">
+              <td className="px-2 py-2 flex items-center justify-center space-x-2">
                 <button
+                  type="button"
                   onClick={() => startEditing(player)}
-                  className="text-blue-600 hover:underline">
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
                   <Pencil size={16} />
                 </button>
                 <button
-                  onClick={() => deletePlayer(player.id)}
-                  className="text-red-600 hover:underline">
+                  type="button"
+                  onClick={() => setConfirmDeleteId(player.id)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
                   <Trash2 size={16} />
                 </button>
               </td>
@@ -221,7 +232,7 @@ export default function PlayerList() {
 
       {/* Modal d'édition */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Modifier le joueur</h3>
 
@@ -281,15 +292,19 @@ export default function PlayerList() {
               </div>
 
               <div>
-                <input
-                  type="text"
+                <select
                   value={editForm.position}
                   onChange={(e) =>
                     setEditForm({ ...editForm, position: e.target.value })
                   }
-                  placeholder="Poste"
-                  className="w-full border px-3 py-2 rounded"
-                />
+                  className="w-full border px-3 py-2 rounded">
+                  <option value="">Sélectionner un poste</option>
+                  {footballPositions.map((pos) => (
+                    <option key={pos} value={pos}>
+                      {pos}
+                    </option>
+                  ))}
+                </select>
                 {errors.position && (
                   <p className="text-red-500 text-sm">{errors.position}</p>
                 )}
@@ -355,14 +370,44 @@ export default function PlayerList() {
 
             <div className="flex justify-end gap-2 mt-6">
               <button
+                type="button"
                 onClick={() => savePlayer(editingPlayerId)}
-                className="bg-green-600 text-white px-4 py-2 rounded">
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
                 Enregistrer
               </button>
               <button
+                type="button"
                 onClick={cancelEditing}
-                className="bg-gray-400 text-white px-4 py-2 rounded">
+                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
                 Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Modal de confirmation */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm animate-fade-in">
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">
+              🗑️ Supprimer ce joueur ?
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Cette action est irréversible. Le compte et ses données seront
+              définitivement supprimés.
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded">
+                Annuler
+              </button>
+              <button
+                onClick={() => handleConfirmedDelete(confirmDeleteId)}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded">
+                Supprimer
               </button>
             </div>
           </div>
