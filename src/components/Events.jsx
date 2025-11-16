@@ -18,6 +18,7 @@ export default function Event() {
   const [players, setPlayers] = useState([]);
   const [selectedEventTitle, setSelectedEventTitle] = useState("");
   const [selectedEventDate, setSelectedEventDate] = useState(null);
+  const [selectedEventType, setSelectedEventType] = useState(""); // <-- Ajouté
 
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -137,11 +138,12 @@ export default function Event() {
   const handleShowPlayers = async (event) => {
     const eventDate = new Date(event.date_event);
     setSelectedEventDate(eventDate);
-
+    setSelectedEventType(event.event_type);
     try {
       const response = await axiosInstance.get(
         `/admin/event/${event.id}/participations/`
       );
+      console.log("Joueurs récupérés :", response.data);
       setPlayers(response.data);
       setSelectedEventTitle(event.title);
       setShowPlayersModal(true);
@@ -152,7 +154,7 @@ export default function Event() {
   };
 
   const handleStatChange = (index, field, value) => {
-    if (value < 0) return; // Interdire valeurs négatives
+    if (value < 0) return;
     const updatedPlayers = [...players];
     updatedPlayers[index][field] = value;
     setPlayers(updatedPlayers);
@@ -171,7 +173,6 @@ export default function Event() {
 
     for (const p of players) {
       const payload = {
-        participation_id: p.id,
         performance: p.performance ?? 0,
         cartonJaune: p.cartonJaune ?? 0,
         cartonRouge: p.cartonRouge ?? 0,
@@ -179,7 +180,10 @@ export default function Event() {
         passe: p.passe ?? 0,
       };
       try {
-        await axiosInstance.post("/give-notes-to-player/", payload);
+        await axiosInstance.put(
+          `/admin/participation/${p.id}/update/`,
+          payload
+        );
         successCount++;
       } catch (error) {
         console.error("Erreur enregistrement stats:", error);
@@ -191,6 +195,10 @@ export default function Event() {
       toast.success(`${successCount} joueur(s) mis à jour !`);
     if (errorCount > 0)
       toast.error(`${errorCount} erreur(s) lors de l'enregistrement.`);
+
+    if (successCount > 0) {
+      setShowPlayersModal(false);
+    }
   };
 
   return (
@@ -398,7 +406,10 @@ export default function Event() {
                   type="checkbox"
                   checked={newEvent.is_cancelled}
                   onChange={(e) =>
-                    setNewEvent({ ...newEvent, is_cancelled: e.target.checked })
+                    setNewEvent({
+                      ...newEvent,
+                      is_cancelled: e.target.checked,
+                    })
                   }
                 />
                 <label>Événement annulé</label>
@@ -457,58 +468,83 @@ export default function Event() {
             <h3 className="text-xl font-bold mb-4">
               Participation à {selectedEventTitle}
             </h3>
+
             <table className="w-full text-gray-800 border">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="px-2 py-1 border">Joueur</th>{" "}
-                  {/* Affiche Dossard + Nom + Position */}
-                  <th className="px-2 py-1 border">Performance</th>
-                  <th className="px-2 py-1 border">Carton Jaune</th>
-                  <th className="px-2 py-1 border">Carton Rouge</th>
-                  <th className="px-2 py-1 border">Buts</th>
-                  <th className="px-2 py-1 border">Passes</th>
+                  <th className="px-2 py-1 border text-left">Joueur</th>
+                  <th className="px-2 py-1 border text-left">Performance</th>
+                  <th className="px-2 py-1 border text-left">Carton Jaune</th>
+                  <th className="px-2 py-1 border text-left">Carton Rouge</th>
+                  <th className="px-2 py-1 border text-left">Buts</th>
+                  <th className="px-2 py-1 border text-left">Passes</th>
                 </tr>
               </thead>
+
               <tbody>
                 {players.map((p, index) => {
-                  const disabled = new Date() < selectedEventDate;
+                  const eventPassed = new Date() >= selectedEventDate;
+                  const isTraining = selectedEventType === "Entrainement"; // type d'événement actuel
+
                   return (
                     <tr key={p.id}>
-                      <td className="px-2 py-1 border">
-                        #{p.player_number} {p.player_name} (
-                        {p.player_position || "—"})
+                      <td className="px-2 py-1 border font-medium">
+                        #{p.player_number} {p.player_name}{" "}
+                        <span className="text-gray-500">
+                          ({p.player_position || "—"})
+                        </span>
                       </td>
+
+                      {/* Champs modifiables */}
                       {[
                         "performance",
                         "cartonJaune",
                         "cartonRouge",
                         "buts",
                         "passe",
-                      ].map((field) => (
-                        <td key={field} className="px-2 py-1 border">
-                          <input
-                            type="number"
-                            min={0}
-                            disabled={disabled}
-                            value={p[field] ?? 0}
-                            onChange={(e) =>
-                              handleStatChange(
-                                index,
-                                field,
-                                parseInt(e.target.value)
-                              )
-                            }
-                            className={`w-full p-1 rounded border ${
-                              disabled ? "bg-gray-200" : "bg-white"
-                            }`}
-                          />
-                        </td>
-                      ))}
+                      ].map((field) => {
+                        // Si c'est un entrainement, seul performance est modifiable
+                        const isDisabled =
+                          !eventPassed ||
+                          (isTraining && field !== "performance");
+
+                        return (
+                          <td key={field} className="px-2 py-1 border">
+                            <input
+                              type="number"
+                              step={field === "performance" ? "0.1" : "1"}
+                              min={0}
+                              max={
+                                field === "cartonJaune"
+                                  ? 2
+                                  : field === "cartonRouge"
+                                  ? 1
+                                  : undefined
+                              }
+                              disabled={isDisabled}
+                              value={p[field] ?? 0}
+                              onChange={(e) => {
+                                let value = parseFloat(e.target.value);
+                                if (value < 0) value = 0;
+                                if (field === "cartonJaune" && value > 2)
+                                  value = 2;
+                                if (field === "cartonRouge" && value > 1)
+                                  value = 1;
+                                handleStatChange(index, field, value);
+                              }}
+                              className={`w-full p-1 rounded border ${
+                                isDisabled ? "bg-gray-200" : "bg-white"
+                              }`}
+                            />
+                          </td>
+                        );
+                      })}
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+
             <div className="flex gap-4 mt-4 justify-end">
               <button
                 onClick={saveAllStats}
@@ -521,6 +557,7 @@ export default function Event() {
               >
                 Enregistrer
               </button>
+
               <button
                 onClick={() => setShowPlayersModal(false)}
                 className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"

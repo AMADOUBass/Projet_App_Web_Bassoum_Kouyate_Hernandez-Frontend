@@ -111,7 +111,7 @@ export default function MyEvents() {
                 </td>
 
                 {/* Type */}
-                <td className="px-4 py-3">{participation.event?.type_event}</td>
+                <td className="px-4 py-3">{participation.event_type}</td>
 
                 {/* Participation */}
                 <td className="px-4 py-3">
