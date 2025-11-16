@@ -8,6 +8,7 @@ export default function MyEvents() {
     open: false,
     eventId: null,
     reason: "",
+    error: "",
   });
 
   useEffect(() => {
@@ -18,14 +19,12 @@ export default function MyEvents() {
     try {
       const response = await axiosInstance.get("/player/my-participations/");
       setEvents(response.data);
-      console.log("Événements récupérés :", response.data);
     } catch (error) {
       console.error("Erreur lors du chargement des événements :", error);
       toast.error("Impossible de charger vos événements.");
     }
   };
 
-  // Refuser avec modal
   const handleRefuse = async () => {
     if (!modal.reason) {
       toast.error("Vous devez fournir un motif de refus.");
@@ -38,7 +37,7 @@ export default function MyEvents() {
         refusal_reason: modal.reason,
       });
       toast.success("Votre refus a été enregistré !");
-      setModal({ open: false, eventId: null, reason: "" });
+      setModal({ open: false, eventId: null, reason: "", error: "" });
       fetchEvents();
     } catch (error) {
       console.error("Erreur lors du refus :", error);
@@ -46,20 +45,16 @@ export default function MyEvents() {
     }
   };
 
-  const handleCancel = async (eventId) => {
-    if (!confirm("Voulez-vous vraiment annuler votre choix ?")) return;
+  const handleParticipation = async (eventId, accept) => {
     try {
       await axiosInstance.put(`/player/participation/${eventId}/`, {
-        will_attend: null,
-        refusal_reason: "",
+        will_attend: accept,
       });
-      toast.success("Participation réinitialisée !");
-      fetchEvents();
       toast.success("Votre réponse a été enregistrée !");
       fetchEvents();
     } catch (error) {
-      console.error("Erreur lors de l’annulation :", error);
-      toast.error("Impossible d’annuler la participation.");
+      console.error("Erreur lors de la participation :", error);
+      toast.error("Impossible de mettre à jour la participation.");
     }
   };
 
@@ -80,76 +75,130 @@ export default function MyEvents() {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Mes événements</h2>
+      <h2 className="text-2xl font-bold mb-6">Mes événements</h2>
 
       {events.length === 0 ? (
-        <p>Aucun événement disponible.</p>
+        <p className="text-gray-600">Aucun événement disponible.</p>
       ) : (
-        <table className="w-full border border-gray-700 rounded-lg">
+        <table className="w-full border border-gray-300 rounded-lg shadow-sm">
           <thead className="bg-gray-800 text-white">
             <tr>
-              <th className="px-4 py-2 align-middle">Titre</th>
-              <th className="px-4 py-2 align-middle">Date</th>
-              <th className="px-4 py-2 align-middle">Type</th>
-              <th className="px-4 py-2 align-middle">Participation</th>
-              <th className="px-4 py-2 align-middle">Note</th>
+              <th className="px-4 py-2">Titre</th>
+              <th className="px-4 py-2">Date</th>
+              <th className="px-4 py-2">Type</th>
+              <th className="px-4 py-2">Participation</th>
+              <th className="px-4 py-2">Note</th>
             </tr>
           </thead>
-
           <tbody>
-            {events.map((participation) => (
-              <tr
-                key={participation.id}
-                className="border-t border-gray-700 text-center align-middle"
-              >
-                {/* Titre */}
-                <td className="px-4 py-3">{participation.event_title}</td>
+            {events.map((participation) => {
+              const isTraining = participation.event_type === "Entrainement";
+              const eventPassed =
+                new Date(participation.event_date) <= new Date();
 
-                {/* Date */}
-                <td className="px-4 py-3">
-                  {formatDate(participation.event_date)}
-                </td>
+              return (
+                <tr
+                  key={participation.id}
+                  className="border-t border-gray-300 text-center align-middle"
+                >
+                  <td className="px-4 py-2">{participation.event_title}</td>
+                  <td className="px-4 py-2">
+                    {formatDate(participation.event_date)}
+                  </td>
+                  <td className="px-4 py-2">{participation.event_type}</td>
 
-                {/* Type */}
-                <td className="px-4 py-3">{participation.event_type}</td>
+                  <td className="px-4 py-2">
+                    {participation.will_attend === null ? (
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() =>
+                            handleParticipation(participation.id, true)
+                          }
+                          className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-white"
+                        >
+                          Accepter
+                        </button>
+                        <button
+                          onClick={() =>
+                            setModal({
+                              open: true,
+                              eventId: participation.id,
+                              reason: "",
+                              error: "",
+                            })
+                          }
+                          className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white"
+                        >
+                          Refuser
+                        </button>
+                      </div>
+                    ) : participation.will_attend ? (
+                      <span className="text-green-500 font-semibold">
+                        Accepté
+                      </span>
+                    ) : (
+                      <span className="text-red-500 font-semibold">
+                        Refusé :{" "}
+                        {participation.refusal_reason || "Non spécifié"}
+                      </span>
+                    )}
+                  </td>
 
-                {/* Participation */}
-                <td className="px-4 py-3">
-                  {participation.will_attend === null ? (
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() =>
-                          handleParticipation(participation.id, true)
-                        }
-                        className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-white"
-                      >
-                        Accepter
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          handleParticipation(participation.id, false)
-                        }
-                        className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white"
-                      >
-                        Refuser
-                      </button>
-                    </div>
-                  ) : participation.will_attend ? (
-                    <span className="text-green-400 font-semibold">
-                      Accepté
-                    </span>
-                  ) : (
-                    <span className="text-red-400 font-semibold">
-                      Refusé : {participation.refusal_reason || "Non spécifié"}
-                    </span>
-                  )}
-                </td>
-
-                {/* Note */}
-                <td className="px-4 py-3 align-middle">15</td>
-              </tr>
-            ))}
+                  <td className="px-4 py-2">
+                    {!eventPassed ? (
+                      <span className="text-gray-400">Événement à venir</span>
+                    ) : isTraining ? (
+                      <span className="text-yellow-600 font-semibold">
+                        Performance : {participation.performance ?? "-"}
+                      </span>
+                    ) : (
+                      <div className="flex justify-center gap-4 text-xl">
+                        <div className="flex flex-col items-center">
+                          <span role="img" aria-label="performance">
+                            ⭐
+                          </span>
+                          <span className="text-sm">
+                            {participation.performance ?? "-"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span role="img" aria-label="carton jaune">
+                            🟨
+                          </span>
+                          <span className="text-sm">
+                            {participation.cartonJaune ?? "-"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span role="img" aria-label="carton rouge">
+                            🟥
+                          </span>
+                          <span className="text-sm">
+                            {participation.cartonRouge ?? "-"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span role="img" aria-label="but">
+                            ⚽
+                          </span>
+                          <span className="text-sm">
+                            {participation.buts ?? "-"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span role="img" aria-label="passe décisive">
+                            👟
+                          </span>
+                          <span className="text-sm">
+                            {participation.passe ?? "-"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
@@ -158,7 +207,6 @@ export default function MyEvents() {
       {modal.open && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg relative">
-            {/* Close */}
             <button
               onClick={() =>
                 setModal({ open: false, eventId: null, reason: "", error: "" })
