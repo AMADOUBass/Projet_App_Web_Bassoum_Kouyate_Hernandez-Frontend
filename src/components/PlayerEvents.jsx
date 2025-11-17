@@ -89,68 +89,119 @@ export default function PlayerDashboard() {
       <h1 className="text-2xl font-bold mb-4">Mon Calendrier ⚽</h1>
       <p className="mb-4">Voici vos prochains matchs et entraînements. Confirmez votre participation !</p>
 
-      {participations.length === 0 ? (
-        <div className="text-center py-8 text-gray-400">
-          Aucun événement pour l'instant. Restez à l'écoute !
-        </div>
+      {events.length === 0 ? (
+        <p className="text-gray-600">Aucun événement disponible.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
-            <thead className="bg-gray-700">
-              <tr>
-                <th className="px-4 py-2 text-left">Événement</th>
-                <th className="px-4 py-2 text-left">Date & Heure</th>
-                <th className="px-4 py-2 text-center">Ma Participation</th>
-                <th className="px-4 py-2 text-center">Actions</th>
+        <table className="w-full border border-gray-300 rounded-lg shadow-sm">
+          <thead className="bg-gray-800 text-white">
+            <tr>
+              <th className="px-4 py-2 text-left">Titre</th>
+              <th className="px-4 py-2 text-left">Date</th>
+              <th className="px-4 py-2 text-left">Statut</th>
+              <th className="px-4 py-2 text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((participation) => (
+              <tr key={participation.id || participation.event}>
+                <td className="px-4 py-2">{participation.event_title}</td>
+                <td className="px-4 py-2">
+                  {formatDate(participation.event_date)}
+                </td>
+                <td className="px-4 py-2">
+                  {participation.will_attend === true ? (
+                    <span className="text-red-400 font-semibold">
+                      Refusé : {participation.refusal_reason || "Non spécifié"}
+                    </span>
+                  ) : (
+                    <span className="text-green-400 font-semibold">
+                      Accepté
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-2">
+                  {/* Affiche Refuser si le joueur n'a pas encore refusé */}
+                  {participation.will_attend !== true && (
+                    <button
+                      onClick={() =>
+                        setModal({
+                          open: true,
+                          eventId: participation.id,
+                          reason: "",
+                        })
+                      }
+                      className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white">
+                      Refuser
+                    </button>
+                  )}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {participations.map((part) => {
-                const event = part.event || {};
-                const isUpcoming = new Date(event.date_event || 0) >= new Date();
-                const statusClass = part.will_attend ? "bg-red-500" : "bg-green-500";  // Inversé : true = rouge
-                return (
-                  <tr key={part.id} className="border-t hover:bg-gray-700">
-                    <td className="px-4 py-2 font-medium">{event.title || "Événement sans titre"}</td>
-                    <td className="px-4 py-2">{formatDate(event.date_event)}</td>
-                    <td className="px-4 py-2 text-center">
-                      <span className={`px-2 py-1 rounded-full text-white text-sm ${statusClass}`}>
-                        {getParticipationLabel(part)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      {isUpcoming && !updating[part.id] ? (
-                        <div className="flex justify-center space-x-2">
-                          {part.will_attend ? (  // true = Refusé → bouton Accepter (envoie false)
-                            <button
-                              onClick={() => handleToggleParticipation(part.id, true)}  // False pour accepter (opposé)
-                              disabled={updating[part.id]}
-                              className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm disabled:opacity-50"
-                            >
-                              Accepter
-                            </button>
-                          ) : (  // false = Accepté → bouton Refuser (envoie true)
-                            <button
-                              onClick={() => handleToggleParticipation(part.id, false)}  // True pour refuser (opposé)
-                              disabled={updating[part.id]}
-                              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm disabled:opacity-50"
-                            >
-                              Refuser
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 text-sm">
-                          {isUpcoming ? "En cours" : "Passé"}
-                        </span>
-                      )}
-                      {updating[part.id] && <span className="ml-2 text-blue-400">⏳</span>}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* Modal pour saisir le motif de refus */}
+      {modal.open && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg relative">
+            {/* Close button */}
+            <button
+              onClick={() =>
+                setModal({ open: false, eventId: null, reason: "", error: "" })
+              }
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl font-bold">
+              &times;
+            </button>
+
+            <h3 className="text-xl font-bold mb-4 text-center text-gray-800">
+              Refuser l'événement
+            </h3>
+            <p className="mb-2 text-gray-700">
+              Veuillez indiquer la raison de votre refus :
+            </p>
+
+            <textarea
+              value={modal.reason}
+              onChange={(e) =>
+                setModal({ ...modal, reason: e.target.value, error: "" })
+              }
+              placeholder="Motif de refus..."
+              className="w-full border border-gray-300 rounded-lg p-3 mb-1 text-black resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              rows={4}
+            />
+
+            {/* Message de validation */}
+            {modal.error && (
+              <p className="text-red-600 text-sm mb-2">{modal.error}</p>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() =>
+                  setModal({
+                    open: false,
+                    eventId: null,
+                    reason: "",
+                    error: "",
+                  })
+                }
+                className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold">
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  if (!modal.reason.trim()) {
+                    setModal({ ...modal, error: "Veuillez saisir un motif." });
+                    return;
+                  }
+                  handleRefuse();
+                }}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold">
+                Refuser
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

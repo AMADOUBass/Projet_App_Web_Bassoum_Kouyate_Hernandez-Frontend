@@ -58,7 +58,8 @@ export default function AdminProfile() {
       <div className="mt-6 flex justify-end">
         <button
           onClick={() => toast("Fonction admin à venir")}
-          className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded">
+          className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+        >
           ⚙️ Accéder à l’espace admin
         </button>
       </div>
