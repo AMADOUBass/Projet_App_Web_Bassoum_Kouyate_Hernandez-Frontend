@@ -81,9 +81,9 @@ export default function MyEvents() {
       <h2 className="text-2xl font-bold mb-4">Mes événements</h2>
 
       {events.length === 0 ? (
-        <p>Aucun événement disponible.</p>
+        <p className="text-gray-600">Aucun événement disponible.</p>
       ) : (
-        <table className="w-full border border-gray-700 rounded-lg">
+        <table className="w-full border border-gray-300 rounded-lg shadow-sm">
           <thead className="bg-gray-800 text-white">
             <tr>
               <th className="px-4 py-2 text-left">Titre</th>
