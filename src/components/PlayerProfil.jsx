@@ -32,7 +32,7 @@ export default function PlayerProfile() {
         position: data.position || "",
         jersey_number: data.jersey_number || "",
       };
-
+ 
       setInitialData(initial);
       setFormData(initial);
       setProfileFile(null);
