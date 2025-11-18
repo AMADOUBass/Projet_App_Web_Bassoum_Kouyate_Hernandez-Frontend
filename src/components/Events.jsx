@@ -134,24 +134,23 @@ export default function Event() {
     }
   };
 
-  // --- Modal joueurs ---
   const handleShowPlayers = async (event) => {
-    const eventDate = new Date(event.date_event);
-    setSelectedEventDate(eventDate);
-    setSelectedEventType(event.event_type);
     try {
       const response = await axiosInstance.get(
         `/admin/event/${event.id}/participations/`
       );
-      console.log("Joueurs récupérés :", response.data);
-      setPlayers(response.data);
+
+      const attending = response.data.filter((p) => p.will_attend === true);
+      setPlayers(attending);
       setSelectedEventTitle(event.title);
       setShowPlayersModal(true);
     } catch (error) {
-      console.error("Erreur chargement joueurs:", error);
+      console.error("Erreur de chargement des joueurs:", error);
       toast.error("Impossible de charger la liste des joueurs");
     }
   };
+
+  
 
   const handleStatChange = (index, field, value) => {
     if (value < 0) return;
@@ -228,6 +227,7 @@ export default function Event() {
               <th className="px-4 py-2">Lieu</th>
               <th className="px-4 py-2">Opposition</th>
               <th className="px-4 py-2">État</th>
+              <th className="px-4 py-2">Disponibles</th>
               <th className="px-4 py-2">Actions</th>
             </tr>
           </thead>
