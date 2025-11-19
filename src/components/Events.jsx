@@ -134,25 +134,23 @@ export default function Event() {
     }
   };
 
-  // --- Modal joueurs ---
   const handleShowPlayers = async (event) => {
-    const eventDate = new Date(event.date_event);
-    setSelectedEventDate(eventDate);
-    setSelectedEventType(event.event_type);
     try {
       const response = await axiosInstance.get(
         `/admin/event/${event.id}/participations/`
       );
-      console.log("Joueurs récupérés :", response.data);
-      setPlayers(response.data);
+
+      const attending = response.data.filter((p) => p.will_attend === true);
+      setPlayers(attending);
       setSelectedEventTitle(event.title);
+      setSelectedEventDate(new Date(event.date_event));
+      setSelectedEventType(event.event_type);
       setShowPlayersModal(true);
     } catch (error) {
-      console.error("Erreur chargement joueurs:", error);
+      console.error("Erreur de chargement des joueurs:", error);
       toast.error("Impossible de charger la liste des joueurs");
     }
   };
-
   const handleStatChange = (index, field, value) => {
     if (value < 0) return;
     const updatedPlayers = [...players];
@@ -212,7 +210,8 @@ export default function Event() {
             setShowModal(true);
             setErrors({});
           }}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg shadow hover:bg-gray-300 transition">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg shadow hover:bg-gray-300 transition"
+        >
           <PlusCircle size={20} /> Ajouter
         </button>
       </div>
@@ -484,7 +483,7 @@ export default function Event() {
               <tbody>
                 {players.map((p, index) => {
                   const eventPassed = new Date() >= selectedEventDate;
-                  const isTraining = selectedEventType === "Entrainement"; // type d'événement actuel
+                  const isTraining = selectedEventType === "Entrainement";
 
                   return (
                     <tr key={p.id}>
@@ -494,7 +493,6 @@ export default function Event() {
                           ({p.player_position || "—"})
                         </span>
                       </td>
-
                       {/* Champs modifiables */}
                       {[
                         "performance",
