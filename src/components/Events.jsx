@@ -150,8 +150,6 @@ export default function Event() {
     }
   };
 
-  
-
   const handleStatChange = (index, field, value) => {
     if (value < 0) return;
     const updatedPlayers = [...players];
@@ -227,7 +225,7 @@ export default function Event() {
               <th className="px-4 py-2">Lieu</th>
               <th className="px-4 py-2">Opposition</th>
               <th className="px-4 py-2">État</th>
-              <th className="px-4 py-2">Actions</th>
+              <th className="px-4 text-center py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -240,38 +238,37 @@ export default function Event() {
             ) : (
               events.map((event) => (
                 <tr key={event.id} className="border-t">
-                  <td className="px-4 py-2">{event.title}</td>
-                  <td className="px-4 py-2">{event.event_type}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 text-left py-2">{event.title}</td>
+                  <td className="px-4 text-left py-2">{event.event_type}</td>
+                  <td className="px-4 text-left py-2">
                     {event.date_event
                       ? new Date(event.date_event).toLocaleString("fr-FR")
                       : "—"}
                   </td>
-                  <td className="px-4 py-2">{event.location}</td>
-                  <td className="px-4 py-2">{event.opponent || "—"}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 text-left py-2">{event.location}</td>
+                  <td className="px-4 text-left py-2">
+                    {event.opponent || "—"}
+                  </td>
+                  <td className="px-4 text-left py-2">
                     {event.is_cancelled ? "Annulé ❌" : "Actif ✅"}
                   </td>
-                  <td className="px-4 py-2 flex gap-3 justify-center">
+                  <td className="px-4  py-2 flex gap-3 justify-center">
                     <button
                       onClick={() => handleShowPlayers(event)}
                       className="text-blue-600"
-                      title="Voir joueurs"
-                    >
+                      title="Voir joueurs">
                       <Users size={20} />
                     </button>
                     <button
                       onClick={() => handleEdit(event)}
                       className="text-yellow-500"
-                      title="Modifier"
-                    >
+                      title="Modifier">
                       <Pencil size={20} />
                     </button>
                     <button
                       onClick={() => handleDelete(event.id, event.title)}
                       className="text-red-600"
-                      title="Supprimer"
-                    >
+                      title="Supprimer">
                       <Trash2 size={20} />
                     </button>
                   </td>
@@ -314,8 +311,7 @@ export default function Event() {
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, event_type: e.target.value })
                   }
-                  className="w-full border rounded px-3 py-2"
-                >
+                  className="w-full border rounded px-3 py-2">
                   <option value="">Sélectionnez le type</option>
                   {["Entrainement", "Match", "Tournoi", "Amical"].map(
                     (type) => (
@@ -419,14 +415,12 @@ export default function Event() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
-                >
+                  className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white"
-                >
+                  className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
                   {isEdit ? "Modifier" : "Ajouter"}
                 </button>
               </div>
@@ -440,19 +434,17 @@ export default function Event() {
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg max-w-sm w-full shadow-lg">
             <h3 className="text-xl font-bold">
-              Supprimer "{confirmModal.title}" ?
+              Suppression de l'événement "{confirmModal.title}"
             </h3>
-            <div className="flex gap-4 mt-4 justify-end">
+            <div className="flex gap-4 mt-4 text-center justify-center">
               <button
                 onClick={confirmDelete}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-              >
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
                 Supprimer
               </button>
               <button
                 onClick={cancelDelete}
-                className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
-              >
+                className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">
                 Annuler
               </button>
             </div>
@@ -551,16 +543,14 @@ export default function Event() {
                 className={`px-4 py-2 rounded text-white ${
                   new Date() < selectedEventDate
                     ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700"
-                }`}
-              >
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}>
                 Enregistrer
               </button>
 
               <button
                 onClick={() => setShowPlayersModal(false)}
-                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
-              >
+                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">
                 Fermer
               </button>
             </div>
