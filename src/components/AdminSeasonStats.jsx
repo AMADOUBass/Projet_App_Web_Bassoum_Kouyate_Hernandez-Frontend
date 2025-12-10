@@ -116,7 +116,7 @@ export default function AdminSeasonStats() {
 
         <button
           onClick={exportToCSV}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          className="border px-2 py-1 rounded bg-green-100 hover:bg-green-200">
           📥 Exporter en CSV
         </button>
 
