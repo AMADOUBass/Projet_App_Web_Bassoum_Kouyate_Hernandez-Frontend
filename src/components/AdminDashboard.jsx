@@ -104,7 +104,7 @@ export default function AdminDashboard() {
                     }
                     handleApprove(user.id);
                   }}
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
+                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
                   Approuver
                 </button>
               </td>
