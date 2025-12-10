@@ -203,12 +203,12 @@ export default function PlayerList() {
               <td className="px-4 py-2">
                 {player.user.profile_picture ? (
                   <img
-                    src={player.user.profile_picture}
-                    alt="Photo de profil"
+                    src={`https://api.dicebear.com/9.x/bottts/svg?seed=${player.id}`}
+                    alt="Avatar généré"
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
-                  <span className="text-gray-400 italic">Aucune photo</span>
+                  "—"
                 )}
               </td>
               <td className="px-2 py-2 flex items-center justify-center space-x-2">

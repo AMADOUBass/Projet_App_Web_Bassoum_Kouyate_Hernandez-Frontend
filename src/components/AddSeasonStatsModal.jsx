@@ -16,18 +16,25 @@ export default function AddSeasonStatsModal({ onClose, onSuccess }) {
 
   const [errors, setErrors] = useState({});
   const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [seasonFilter, setSeasonFilter] = useState(new Date().getFullYear().toString());  
 
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const response = await axiosInstance.get("/admin/players/");
+        const response = await axiosInstance.get(
+          "/admin/players-without-stats/",
+          {
+            params: { season: seasonFilter },
+          }
+        );
         setPlayers(response.data);
       } catch (error) {
-        toast.error("Erreur lors du chargement des joueurs.");
+        toast.error("Erreur lors du chargement des joueurs sans stats.");
       }
     };
     fetchPlayers();
-  }, []);
+  }, [seasonFilter]);
 
   const validate = () => {
     const newErrors = {};
